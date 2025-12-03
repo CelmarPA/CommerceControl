@@ -1,0 +1,2168 @@
+openapi: 3.0.0
+info:
+  title: Auth API
+  version: 1.0.0
+  description: Authentication and product management service.
+servers:
+  - url: http://127.0.0.1:8000
+paths:
+  /auth/register:
+    post:
+      summary: Register User
+      tags:
+        - auth
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: |-
+                  Schema for returning user data in API responses.
+
+                  :param id: Primary key of the user.
+                  :type id: int
+
+                  :param email: User's email address.
+                  :type email: EmailStr
+
+                  :param role: User's role.
+                  :type role: str
+                title: UserResponse
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    title: Id
+                  email:
+                    type: string
+                    title: Email
+                    format: email
+                  role:
+                    type: string
+                    title: Role
+                required:
+                  - id
+                  - email
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      description: |-
+        Register a new user.
+
+        First user created -> superadmin
+        Second user created -> admin
+        All others -> user
+
+        :param user_data: Registration input containing email + password.
+        :type user_data: UserCreate
+
+        :param request: Incoming HTTP request.
+        :type request: Request
+
+        :param db: Active database session.
+        :type db: Session
+
+        :return: Newly created user.
+        :rtype: UserResponse
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: |-
+                Schema for creating a new user.
+
+                :param email: User's email address.
+                :type email: EmailStr
+
+                :param password: User's password (minimum length 6).
+                :type password: str
+
+                :param role: Optional role assignment.
+                :type role: Optional[str]
+              title: UserCreate
+              type: object
+              properties:
+                email:
+                  type: string
+                  title: Email
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+                  title: Password
+                role:
+                  title: Role
+                  anyOf:
+                    - type: string
+                      nullable: true
+              required:
+                - email
+                - password
+  /auth/login:
+    post:
+      summary: Login
+      tags:
+        - auth
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: >-
+                  Represents an authentication token pair (access + refresh).
+
+
+                  :param access_token: JWT access token for API authentication.
+
+                  :type access_token: str
+
+
+                  :param token_type: Type of token, default is "bearer".
+
+                  :type token_type: str
+
+
+                  :param refresh_token: Refresh token used to obtain new access
+                  tokens.
+
+                  :type refresh_token: str
+                title: Token
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    title: Access Token
+                  token_type:
+                    type: string
+                    title: Token Type
+                  refresh_token:
+                    type: string
+                    title: Refresh Token
+                required:
+                  - access_token
+                  - refresh_token
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      description: >-
+        Authenticate a user using email and password.
+
+
+        Returns both access and refresh tokens.
+
+        Protected by rate-limiting (5 per minute).
+
+
+        :param request: Incoming HTTP request (used for logging and rate-limit
+        context).
+
+        :type request: Request
+
+
+        :param user_data: User login credentials.
+
+        :type user_data: Login
+
+
+        :param db: Active database session.
+
+        :type db: Session
+
+
+        :return: JWT access token and refresh token.
+
+        :rtype: Token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: |-
+                Schema for user login input.
+
+                :param email: User email address.
+                :type email: EmailStr
+
+                :param password: User plaintext password.
+                :type password: str
+              title: Login
+              type: object
+              properties:
+                email:
+                  type: string
+                  title: Email
+                  format: email
+                password:
+                  type: string
+                  title: Password
+              required:
+                - email
+                - password
+  /auth/refresh:
+    post:
+      summary: Refresh Token
+      tags:
+        - auth
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: >-
+                  Represents an authentication token pair (access + refresh).
+
+
+                  :param access_token: JWT access token for API authentication.
+
+                  :type access_token: str
+
+
+                  :param token_type: Type of token, default is "bearer".
+
+                  :type token_type: str
+
+
+                  :param refresh_token: Refresh token used to obtain new access
+                  tokens.
+
+                  :type refresh_token: str
+                title: Token
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    title: Access Token
+                  token_type:
+                    type: string
+                    title: Token Type
+                  refresh_token:
+                    type: string
+                    title: Refresh Token
+                required:
+                  - access_token
+                  - refresh_token
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      description: >-
+        Rotate and validate a refresh token, returning new access and refresh
+        tokens.
+
+
+        :param payload: The refresh token input.
+
+        :type payload: RefreshTokenRequest
+
+
+        :param request: Incoming HTTP request.
+
+        :type request: Request
+
+
+        :param db: Active database session.
+
+        :type db: Session
+
+
+        :return: New access + refresh tokens.
+
+        :rtype: Token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: >-
+                Represents a request payload containing a refresh token.
+
+
+                :param refresh_token: Refresh token provided by the client for
+                rotation.
+
+                :type refresh_token: str
+              title: RefreshTokenRequest
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+                  title: Refresh Token
+              required:
+                - refresh_token
+  /auth/logout:
+    post:
+      summary: Logout
+      tags:
+        - auth
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: |-
+                  Schema representing a generic message response.
+
+                  :param detail: Message text returned to the client.
+                  :type detail: str
+                title: Message
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    title: Detail
+                required:
+                  - detail
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      description: |-
+        Logout the user by revoking the provided refresh token.
+
+        :param data: Request containing refresh token.
+        :type data: LogoutRequest
+
+        :param request: Incoming HTTP request.
+        :type request: Request
+
+        :param db: Active database session.
+        :type db: Session
+
+        :return: Success message.
+        :rtype: Message
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: |-
+                Schema for logout input.
+
+                :param refresh_token: Refresh token to be revoked.
+                :type refresh_token: str
+              title: LogoutRequest
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+                  title: Refresh Token
+              required:
+                - refresh_token
+  /auth/request-password-reset:
+    post:
+      summary: Request Password Reset
+      tags:
+        - auth
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: |-
+                  Schema representing a generic message response.
+
+                  :param detail: Message text returned to the client.
+                  :type detail: str
+                title: Message
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    title: Detail
+                required:
+                  - detail
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      description: |-
+        Request a password reset email.
+
+        Always returns a generic success message to avoid account enumeration.
+
+        :param data: Contains the email to send the reset link to.
+        :type data: PasswordResetRequest
+
+        :param request: Incoming HTTP request.
+        :type request: Request
+
+        :param db: Active database session.
+        :type db: Session
+
+        :return: Generic success message.
+        :rtype: Message
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: >-
+                Schema for requesting a password reset link.
+
+
+                :param email: Email address of the user requesting password
+                reset.
+
+                :type email: EmailStr
+              title: PasswordResetRequest
+              type: object
+              properties:
+                email:
+                  type: string
+                  title: Email
+                  format: email
+              required:
+                - email
+  /auth/reset-password:
+    post:
+      summary: Reset Password
+      tags:
+        - auth
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: |-
+                  Schema representing a generic message response.
+
+                  :param detail: Message text returned to the client.
+                  :type detail: str
+                title: Message
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    title: Detail
+                required:
+                  - detail
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      description: |-
+        Reset a user's password using a password reset token.
+
+        :param data: Contains reset token + new password.
+        :type data: PasswordResetInput
+
+        :param request: Incoming HTTP request.
+        :type request: Request
+
+        :param db: Active database session.
+        :type db: Session
+
+        :return: Confirmation message.
+        :rtype: Message
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: >-
+                Schema for submitting a new password along with a valid reset
+                token.
+
+
+                :param token: Password reset token received via email.
+
+                :type token: str
+
+
+                :param new_password: The new password to set for the user.
+
+                :type new_password: str
+              title: PasswordResetInput
+              type: object
+              properties:
+                token:
+                  type: string
+                  title: Token
+                new_password:
+                  type: string
+                  title: New Password
+              required:
+                - token
+                - new_password
+  /auth/me:
+    get:
+      summary: Me
+      tags:
+        - auth
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: |-
+                  Schema for returning user data in API responses.
+
+                  :param id: Primary key of the user.
+                  :type id: int
+
+                  :param email: User's email address.
+                  :type email: EmailStr
+
+                  :param role: User's role.
+                  :type role: str
+                title: UserResponse
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    title: Id
+                  email:
+                    type: string
+                    title: Email
+                    format: email
+                  role:
+                    type: string
+                    title: Role
+                required:
+                  - id
+                  - email
+      security:
+        - BearerAuth: []
+      description: |-
+        Return the currently authenticated user.
+
+        :param current_user: The user extracted from the access token.
+        :type current_user: User
+
+        :return: The authenticated user's profile.
+        :rtype: UserResponse
+  /auth/send-verification-email:
+    post:
+      summary: Send Email Verification
+      tags:
+        - auth
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: |-
+                  Schema representing a generic message response.
+
+                  :param detail: Message text returned to the client.
+                  :type detail: str
+                title: Message
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    title: Detail
+                required:
+                  - detail
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      description: >-
+        Send a verification email to a user, if the account is not already
+        verified.
+
+
+        Does not reveal if the user exists.
+
+
+        :param email: Email address to verify.
+
+        :type email: EmailStr
+
+
+        :param db: Active database session.
+
+        :type db: Session
+
+
+        :return: Success message.
+
+        :rtype: Message
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+              title: Email
+  /auth/verify-email:
+    get:
+      summary: Verify Email
+      tags:
+        - auth
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: Verify Token
+          schema:
+            type: string
+            title: Token
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: |-
+                  Schema representing a generic message response.
+
+                  :param detail: Message text returned to the client.
+                  :type detail: str
+                title: Message
+                type: object
+                properties:
+                  detail:
+                    type: string
+                    title: Detail
+                required:
+                  - detail
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      description: |-
+        Verify a user's email using a JWT token.
+
+        :param token: Verification token sent to the user's email.
+        :type token: str
+
+        :param db: Active database session.
+        :type db: Session
+
+        :raises HTTPException: If the token is invalid or user does not exist.
+
+        :return: Confirmation message.
+        :rtype: Message
+  /admin/users/:
+    get:
+      summary: List Users
+      tags:
+        - admin users
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+            title: Page
+            minimum: 1
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            title: Limit
+            minimum: 1
+            maximum: 200
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  description: |-
+                    Schema for listing users.
+
+                    :param id: Primary key of the user.
+                    :type id: int
+                  title: UserListItem
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                      title: Email
+                      format: email
+                    role:
+                      type: string
+                      title: Role
+                    is_verified:
+                      type: boolean
+                      title: Is Verified
+                    is_active:
+                      type: boolean
+                      title: Is Active
+                    id:
+                      type: integer
+                      title: Id
+                  required:
+                    - email
+                    - role
+                    - is_verified
+                    - is_active
+                    - id
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      security:
+        - BearerAuth: []
+      description: |-
+        Retrieves a paginated list of users.
+
+        :param page: Page number for pagination.
+        :type page: int
+
+        :param limit: Number of results per page.
+        :type limit: int
+
+        :param db: Active database session.
+        :type db: Session
+
+        :return: A list of users corresponding to the selected page.
+        :rtype: list[UserListItem]
+  /admin/users/{user_id}:
+    get:
+      summary: Get User
+      tags:
+        - admin users
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: |-
+                  Schema for detailed user information.
+
+                  :param id: Primary key of the user.
+                  :type id: int
+                title: UserDetail
+                type: object
+                properties:
+                  email:
+                    type: string
+                    title: Email
+                    format: email
+                  role:
+                    type: string
+                    title: Role
+                  is_verified:
+                    type: boolean
+                    title: Is Verified
+                  is_active:
+                    type: boolean
+                    title: Is Active
+                  id:
+                    type: integer
+                    title: Id
+                required:
+                  - email
+                  - role
+                  - is_verified
+                  - is_active
+                  - id
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      security:
+        - BearerAuth: []
+      description: |-
+        Retrieves detailed information for a specific user.
+
+        :param user_id: ID of the target user.
+        :type user_id: int
+
+        :param db: Active database session.
+        :type db: Session
+
+        :return: The user details.
+        :rtype: UserDetail
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        description: User's ID
+        schema:
+          type: integer
+          title: User Id
+    put:
+      summary: Update User
+      tags:
+        - admin users
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: |-
+                  Schema for detailed user information.
+
+                  :param id: Primary key of the user.
+                  :type id: int
+                title: UserDetail
+                type: object
+                properties:
+                  email:
+                    type: string
+                    title: Email
+                    format: email
+                  role:
+                    type: string
+                    title: Role
+                  is_verified:
+                    type: boolean
+                    title: Is Verified
+                  is_active:
+                    type: boolean
+                    title: Is Active
+                  id:
+                    type: integer
+                    title: Id
+                required:
+                  - email
+                  - role
+                  - is_verified
+                  - is_active
+                  - id
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      security:
+        - BearerAuth: []
+      description: |-
+        Updates a user's information.
+
+        :param user_id: ID of the target user.
+        :type user_id: int
+
+        :param payload: Fields to update.
+        :type payload: UserUpdate
+
+        :param db: Active database session.
+        :type db: Session
+
+        :return: The updated user record.
+        :rtype: UserDetail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: |-
+                Schema for updating user attributes.
+
+                Fields are optional to allow partial updates.
+
+                :param email: New email address.
+                :type email: Optional[EmailStr]
+
+                :param role: New role.
+                :type role: Optional[str]
+
+                :param is_active: Account active status.
+                :type is_active: Optional[bool]
+              title: UserUpdate
+              type: object
+              properties:
+                email:
+                  title: Email
+                  anyOf:
+                    - type: string
+                      nullable: true
+                role:
+                  title: Role
+                  anyOf:
+                    - type: string
+                      nullable: true
+                is_active:
+                  title: Is Active
+                  anyOf:
+                    - type: boolean
+                      nullable: true
+    delete:
+      summary: Delete User
+      tags:
+        - admin users
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: |-
+                  Schema for detailed user information.
+
+                  :param id: Primary key of the user.
+                  :type id: int
+                title: UserDetail
+                type: object
+                properties:
+                  email:
+                    type: string
+                    title: Email
+                    format: email
+                  role:
+                    type: string
+                    title: Role
+                  is_verified:
+                    type: boolean
+                    title: Is Verified
+                  is_active:
+                    type: boolean
+                    title: Is Active
+                  id:
+                    type: integer
+                    title: Id
+                required:
+                  - email
+                  - role
+                  - is_verified
+                  - is_active
+                  - id
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      security:
+        - BearerAuth: []
+      description: |-
+        Permanently deletes a user. Only superadmins may perform this action.
+
+        :param user_id: ID of the user to delete.
+        :type user_id: int
+
+        :param db: Active database session.
+        :type db: Session
+
+        :raises HTTPException: If the user does not exist.
+
+        :return: Confirmation message.
+        :rtype: dict
+  /admin/users/{user_id}/disable:
+    patch:
+      summary: Disable User
+      tags:
+        - admin users
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: |-
+                  Schema for detailed user information.
+
+                  :param id: Primary key of the user.
+                  :type id: int
+                title: UserDetail
+                type: object
+                properties:
+                  email:
+                    type: string
+                    title: Email
+                    format: email
+                  role:
+                    type: string
+                    title: Role
+                  is_verified:
+                    type: boolean
+                    title: Is Verified
+                  is_active:
+                    type: boolean
+                    title: Is Active
+                  id:
+                    type: integer
+                    title: Id
+                required:
+                  - email
+                  - role
+                  - is_verified
+                  - is_active
+                  - id
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      security:
+        - BearerAuth: []
+      description: |-
+        Disables a user account.
+
+        :param user_id: ID of the user to disable.
+        :type user_id: int
+
+        :param db: Active database session.
+        :type db: Session
+
+        :return: The updated user record with `is_active` set to False.
+        :rtype: UserDetail
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        description: User's ID
+        schema:
+          type: integer
+          title: User Id
+  /admin/users/{user_id}/enable:
+    patch:
+      summary: Enable User
+      tags:
+        - admin users
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: |-
+                  Schema for detailed user information.
+
+                  :param id: Primary key of the user.
+                  :type id: int
+                title: UserDetail
+                type: object
+                properties:
+                  email:
+                    type: string
+                    title: Email
+                    format: email
+                  role:
+                    type: string
+                    title: Role
+                  is_verified:
+                    type: boolean
+                    title: Is Verified
+                  is_active:
+                    type: boolean
+                    title: Is Active
+                  id:
+                    type: integer
+                    title: Id
+                required:
+                  - email
+                  - role
+                  - is_verified
+                  - is_active
+                  - id
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      security:
+        - BearerAuth: []
+      description: |-
+        Enables a previously disabled user account.
+
+        :param user_id: ID of the user to enable.
+        :type user_id: int
+
+        :param db: Active database session.
+        :type db: Session
+
+        :return: The updated user record with `is_active` set to True.
+        :rtype: UserDetail
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        description: User's ID
+        schema:
+          type: integer
+          title: User Id
+  /admin/users/admin/dashboard:
+    get:
+      summary: Admin Dashboard
+      tags:
+        - admin users
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                title: Response Admin Dashboard Admin Users Dashboard Get
+                type: object
+      security:
+        - BearerAuth: []
+      description: |-
+        Returns a simple response for validating admin access.
+
+        :return: A message confirming access to the admin dashboard.
+        :rtype: dict
+  /products/:
+    get:
+      summary: List Products
+      tags:
+        - products
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: search by name substring
+          schema:
+            type: string
+        - name: skip
+          in: query
+          required: false
+          schema:
+            type: integer
+            title: Skip
+            minimum: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            title: Limit
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  description: >-
+                    Schema for returning product information via API responses.
+
+
+                    :param id: Primary key of the product.
+
+                    :type id: int
+
+
+                    :param created_at: Timestamp (UTC) when the product was
+                    created.
+
+                    :type created_at: datetime | None
+
+
+                    :param updated_at: Timestamp (UTC) of the last update.
+
+                    :type updated_at: datetime | None
+                  title: ProductOut
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      title: Name
+                    description:
+                      title: Description
+                      anyOf:
+                        - type: string
+                          nullable: true
+                    price:
+                      type: number
+                      title: Price
+                    stock:
+                      type: integer
+                      title: Stock
+                    id:
+                      type: integer
+                      title: Id
+                    created_at:
+                      title: Created At
+                      anyOf:
+                        - type: string
+                          nullable: true
+                    updated_at:
+                      title: Updated At
+                      anyOf:
+                        - type: string
+                          nullable: true
+                  required:
+                    - name
+                    - price
+                    - stock
+                    - id
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      description: |-
+        List products with optional name filtering and pagination.
+
+        :param q: Optional substring to search in product names.
+        :type q: str | None
+
+        :param skip: Number of items to skip.
+        :type skip: int
+
+        :param limit: Maximum number of items to return.
+        :type limit: int
+
+        :param db: Active database session.
+        :type db: Session
+
+        :return: List of matching products.
+        :rtype: list[ProductOut]
+    post:
+      summary: Create Product
+      tags:
+        - products
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: >-
+                  Schema for returning product information via API responses.
+
+
+                  :param id: Primary key of the product.
+
+                  :type id: int
+
+
+                  :param created_at: Timestamp (UTC) when the product was
+                  created.
+
+                  :type created_at: datetime | None
+
+
+                  :param updated_at: Timestamp (UTC) of the last update.
+
+                  :type updated_at: datetime | None
+                title: ProductOut
+                type: object
+                properties:
+                  name:
+                    type: string
+                    title: Name
+                  description:
+                    title: Description
+                    anyOf:
+                      - type: string
+                        nullable: true
+                  price:
+                    type: number
+                    title: Price
+                  stock:
+                    type: integer
+                    title: Stock
+                  id:
+                    type: integer
+                    title: Id
+                  created_at:
+                    title: Created At
+                    anyOf:
+                      - type: string
+                        nullable: true
+                  updated_at:
+                    title: Updated At
+                    anyOf:
+                      - type: string
+                        nullable: true
+                required:
+                  - name
+                  - price
+                  - stock
+                  - id
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      security:
+        - BearerAuth: []
+      description: |-
+        Create a new product. Admin or superadmin only.
+
+        :param payload: Product creation data.
+        :type payload: ProductCreate
+
+        :param db: Active database session.
+        :type db: Session
+
+        :return: Newly created product.
+        :rtype: Product
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: |-
+                Schema for creating a new product.
+
+                Inherits all fields from ProductBase.
+              title: ProductCreate
+              type: object
+              properties:
+                name:
+                  type: string
+                  title: Name
+                description:
+                  title: Description
+                  anyOf:
+                    - type: string
+                      nullable: true
+                price:
+                  type: number
+                  title: Price
+                stock:
+                  type: integer
+                  title: Stock
+              required:
+                - name
+                - price
+                - stock
+  /products/{product_id}:
+    get:
+      summary: Get Product
+      tags:
+        - products
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: >-
+                  Schema for returning product information via API responses.
+
+
+                  :param id: Primary key of the product.
+
+                  :type id: int
+
+
+                  :param created_at: Timestamp (UTC) when the product was
+                  created.
+
+                  :type created_at: datetime | None
+
+
+                  :param updated_at: Timestamp (UTC) of the last update.
+
+                  :type updated_at: datetime | None
+                title: ProductOut
+                type: object
+                properties:
+                  name:
+                    type: string
+                    title: Name
+                  description:
+                    title: Description
+                    anyOf:
+                      - type: string
+                        nullable: true
+                  price:
+                    type: number
+                    title: Price
+                  stock:
+                    type: integer
+                    title: Stock
+                  id:
+                    type: integer
+                    title: Id
+                  created_at:
+                    title: Created At
+                    anyOf:
+                      - type: string
+                        nullable: true
+                  updated_at:
+                    title: Updated At
+                    anyOf:
+                      - type: string
+                        nullable: true
+                required:
+                  - name
+                  - price
+                  - stock
+                  - id
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      description: |-
+        Retrieve a single product by its ID.
+
+        :param product_id: ID of the product.
+        :type product_id: int
+
+        :param db: Active database session.
+        :type db: Session
+
+        :return: Product details if found.
+        :rtype: ProductOut
+    parameters:
+      - name: product_id
+        in: path
+        required: true
+        description: Product's ID
+        schema:
+          type: integer
+          title: Product Id
+    put:
+      summary: Update Product
+      tags:
+        - products
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: >-
+                  Schema for returning product information via API responses.
+
+
+                  :param id: Primary key of the product.
+
+                  :type id: int
+
+
+                  :param created_at: Timestamp (UTC) when the product was
+                  created.
+
+                  :type created_at: datetime | None
+
+
+                  :param updated_at: Timestamp (UTC) of the last update.
+
+                  :type updated_at: datetime | None
+                title: ProductOut
+                type: object
+                properties:
+                  name:
+                    type: string
+                    title: Name
+                  description:
+                    title: Description
+                    anyOf:
+                      - type: string
+                        nullable: true
+                  price:
+                    type: number
+                    title: Price
+                  stock:
+                    type: integer
+                    title: Stock
+                  id:
+                    type: integer
+                    title: Id
+                  created_at:
+                    title: Created At
+                    anyOf:
+                      - type: string
+                        nullable: true
+                  updated_at:
+                    title: Updated At
+                    anyOf:
+                      - type: string
+                        nullable: true
+                required:
+                  - name
+                  - price
+                  - stock
+                  - id
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      security:
+        - BearerAuth: []
+      description: |-
+        Update an existing product. Admin or superadmin only.
+
+        :param product_id: ID of the product to update.
+        :type product_id: int
+
+        :param product_in: Fields to update.
+        :type product_in: ProductUpdate
+
+        :param db: Active database session.
+        :type db: Session
+
+        :return: Updated product.
+        :rtype: Product
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: |-
+                Schema for updating an existing product.
+
+                All fields are optional to allow partial updates.
+
+                :param name: Updated product name.
+                :type name: str | None
+
+                :param description: Updated product description.
+                :type description: str | None
+
+                :param price: Updated product price.
+                :type price: float | None
+
+                :param stock: Updated product stock.
+                :type stock: int | None
+              title: ProductUpdate
+              type: object
+              properties:
+                name:
+                  title: Name
+                  anyOf:
+                    - type: string
+                      nullable: true
+                description:
+                  title: Description
+                  anyOf:
+                    - type: string
+                      nullable: true
+                price:
+                  title: Price
+                  anyOf:
+                    - type: number
+                      nullable: true
+                stock:
+                  title: Stock
+                  anyOf:
+                    - type: integer
+                      nullable: true
+    delete:
+      summary: Delete Product
+      tags:
+        - products
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                description: >-
+                  Schema for returning product information via API responses.
+
+
+                  :param id: Primary key of the product.
+
+                  :type id: int
+
+
+                  :param created_at: Timestamp (UTC) when the product was
+                  created.
+
+                  :type created_at: datetime | None
+
+
+                  :param updated_at: Timestamp (UTC) of the last update.
+
+                  :type updated_at: datetime | None
+                title: ProductOut
+                type: object
+                properties:
+                  name:
+                    type: string
+                    title: Name
+                  description:
+                    title: Description
+                    anyOf:
+                      - type: string
+                        nullable: true
+                  price:
+                    type: number
+                    title: Price
+                  stock:
+                    type: integer
+                    title: Stock
+                  id:
+                    type: integer
+                    title: Id
+                  created_at:
+                    title: Created At
+                    anyOf:
+                      - type: string
+                        nullable: true
+                  updated_at:
+                    title: Updated At
+                    anyOf:
+                      - type: string
+                        nullable: true
+                required:
+                  - name
+                  - price
+                  - stock
+                  - id
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                title: HTTPValidationError
+                type: object
+                properties:
+                  detail:
+                    type: array
+                    title: Detail
+                    items:
+                      title: ValidationError
+                      type: object
+                      properties:
+                        loc:
+                          type: array
+                          title: Location
+                          items:
+                            anyOf:
+                              - type: string
+                              - type: integer
+                        msg:
+                          type: string
+                          title: Message
+                        type:
+                          type: string
+                          title: Error Type
+                      required:
+                        - loc
+                        - msg
+                        - type
+      security:
+        - BearerAuth: []
+      description: >-
+        Delete a product. Superadmin only (enforced by admin_required + role
+        system).
+
+
+        :param product_id: ID of the product to delete.
+
+        :type product_id: int
+
+
+        :param db: Active database session.
+
+        :type db: Session
+
+
+        :return: Deleted product data.
+
+        :rtype: ProductOut
+  /:
+    get:
+      summary: Root
+      tags:
+        - /
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: object
+      description: >-
+        Root endpoint used for health checking.
+
+
+        :return: dict[str, str]: A simple JSON message confirming that the API
+        is running.
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer

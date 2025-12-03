@@ -1,0 +1,2944 @@
+{
+  "info": {
+    "_postman_id": "265769fa-35e2-4b5e-b936-67453780e108",
+    "name": "Auth API",
+    "description": "Authentication and product management service.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "38031196"
+  },
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "Register User",
+          "id": "3ddb7049-66e6-43ae-8fcc-a6c9baca259a",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"your_email@email.com\",\n  \"password\": \"your_password\",\n  \"role\": \"user\"\n}\n",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/auth/register",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Register a new user.\n\nFirst user created -> superadmin\nSecond user created -> admin\nAll others -> user\n\n:param user_data: Registration input containing email + password.\n:type user_data: UserCreate\n\n:param request: Incoming HTTP request.\n:type request: Request\n\n:param db: Active database session.\n:type db: Session\n\n:return: Newly created user.\n:rtype: UserResponse"
+          },
+          "response": [
+            {
+              "id": "59e492f6-d8b4-4f63-beb3-61e1a5e87dcb",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"your_email@email.com\",\n  \"password\": \"your_password\",\n  \"role\": \"user\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/register",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "register"
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": 4206,\n  \"email\": \"cLqNeHD@MJZfvntVKTrPrhgBG.vwp\",\n  \"role\": \"User\"\n}"
+            },
+            {
+              "id": "2ead2b25-7cb8-47ee-8138-e7b4c933ac15",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"your_email@email.com\",\n  \"password\": \"your_password\",\n  \"role\": \"user\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/register",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "register"
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "id": "4fe90166-ea0e-4ae6-ae62-fc48b3179af8",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"your_email@email.com\",\n  \"password\": \"your_password\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/auth/login",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Authenticate a user using email and password.\n\nReturns both access and refresh tokens.\nProtected by rate-limiting (5 per minute).\n\n:param request: Incoming HTTP request (used for logging and rate-limit context).\n:type request: Request\n\n:param user_data: User login credentials.\n:type user_data: Login\n\n:param db: Active database session.\n:type db: Session\n\n:return: JWT access token and refresh token.\n:rtype: Token"
+          },
+          "response": [
+            {
+              "id": "d88176a3-7e68-4329-8fd9-a8a9e30cecf6",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"your_email@email.com\",\n  \"password\": \"your_password\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/login",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"access_token\": \"string\",\n  \"refresh_token\": \"string\",\n  \"token_type\": \"bearer\"\n}"
+            },
+            {
+              "id": "1a03804c-7872-42e9-8d41-3b48eb76695f",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"your_email@email.com\",\n  \"password\": \"your_password\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/login",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "login"
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "id": "3e977ec0-ba3c-47cc-ba01-34804b6bd8e3",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/auth/refresh",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Rotate and validate a refresh token, returning new access and refresh tokens.\n\n:param payload: The refresh token input.\n:type payload: RefreshTokenRequest\n\n:param request: Incoming HTTP request.\n:type request: Request\n\n:param db: Active database session.\n:type db: Session\n\n:return: New access + refresh tokens.\n:rtype: Token"
+          },
+          "response": [
+            {
+              "id": "64172ee6-3302-4416-8e1c-18ad5bc8620b",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refresh_token\": \"string\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/refresh",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "refresh"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"access_token\": \"string\",\n  \"refresh_token\": \"string\",\n  \"token_type\": \"bearer\"\n}"
+            },
+            {
+              "id": "69f4e4f5-af60-4477-a769-a68fb55fe275",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refresh_token\": \"string\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/refresh",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "refresh"
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "id": "d1c42374-36bf-486a-91a8-b979b92adb41",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"string\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/auth/logout",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "auth",
+                "logout"
+              ]
+            },
+            "description": "Logout the user by revoking the provided refresh token.\n\n:param data: Request containing refresh token.\n:type data: LogoutRequest\n\n:param request: Incoming HTTP request.\n:type request: Request\n\n:param db: Active database session.\n:type db: Session\n\n:return: Success message.\n:rtype: Message"
+          },
+          "response": [
+            {
+              "id": "7859d617-c5d2-442a-855a-2cfb88dd18ae",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refresh_token\": \"string\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/logout",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "logout"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": \"string\"\n}"
+            },
+            {
+              "id": "f505aae8-01e2-4f2a-ad8c-852b227a7eef",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refresh_token\": \"string\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/logout",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "logout"
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Request Password Reset",
+          "id": "9b5204fc-a340-4e8d-990d-14eb1bfadb31",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"your_email@email.com\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/auth/request-password-reset",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "auth",
+                "request-password-reset"
+              ]
+            },
+            "description": "Request a password reset email.\n\nAlways returns a generic success message to avoid account enumeration.\n\n:param data: Contains the email to send the reset link to.\n:type data: PasswordResetRequest\n\n:param request: Incoming HTTP request.\n:type request: Request\n\n:param db: Active database session.\n:type db: Session\n\n:return: Generic success message.\n:rtype: Message"
+          },
+          "response": [
+            {
+              "id": "bb4327e6-2505-4ebc-9ce5-bf85e6161c1d",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"your_email@email.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/request-password-reset",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "request-password-reset"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": \"string\"\n}"
+            },
+            {
+              "id": "ea12327b-3cd8-49c4-b6b7-df7b2e54cd53",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"your_email@email.com\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/request-password-reset",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "request-password-reset"
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Reset Password",
+          "id": "ffa7bf70-2336-4b42-a016-55fef16383f7",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset_token\",\n  \"new_password\": \"your_new_password\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/auth/reset-password",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "auth",
+                "reset-password"
+              ]
+            },
+            "description": "Reset a user's password using a password reset token.\n\n:param data: Contains reset token + new password.\n:type data: PasswordResetInput\n\n:param request: Incoming HTTP request.\n:type request: Request\n\n:param db: Active database session.\n:type db: Session\n\n:return: Confirmation message.\n:rtype: Message"
+          },
+          "response": [
+            {
+              "id": "363d9e7e-c564-4790-bb9d-2e2d4afb5a46",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"reset_password_token\",\n  \"new_password\": \"new_password\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/reset-password",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "reset-password"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": \"string\"\n}"
+            },
+            {
+              "id": "3fea4074-e66d-4710-bb6a-2b102ea06a9f",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"reset_password_token\",\n  \"new_password\": \"new_password\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/reset-password",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "reset-password"
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Me",
+          "id": "dfc7c0e0-a1fc-4932-a4a9-c14407d93cd6",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/auth/me",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Return the currently authenticated user.\n\n:param current_user: The user extracted from the access token.\n:type current_user: User\n\n:return: The authenticated user's profile.\n:rtype: UserResponse"
+          },
+          "response": [
+            {
+              "id": "6a4458e5-68ee-4ba7-be67-b7a8801bfc67",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer <token>",
+                    "description": "Added as a part of security scheme: bearer"
+                  }
+                ],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/me",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "me"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"id\": 4206,\n  \"email\": \"user@email.com\",\n  \"role\": \"User\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Send Email Verification",
+          "id": "ad8bf2ff-09c7-44a0-b097-7148ee713839",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "\"your_email@email.com\"",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/auth/send-verification-email",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "auth",
+                "send-verification-email"
+              ]
+            },
+            "description": "Send a verification email to a user, if the account is not already verified.\n\nDoes not reveal if the user exists.\n\n:param email: Email address to verify.\n:type email: EmailStr\n\n:param db: Active database session.\n:type db: Session\n\n:return: Success message.\n:rtype: Message"
+          },
+          "response": [
+            {
+              "id": "358ce999-9678-4395-9f68-4f56c61f7e9e",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "\"user@email.com\"",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/send-verification-email",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "send-verification-email"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": \"string\"\n}"
+            },
+            {
+              "id": "17b226a2-8b65-410f-b2de-96e15c5db0cb",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "\"user@email.com\"",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/send-verification-email",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "send-verification-email"
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Verify Email",
+          "id": "8806aec7-b5ba-40b6-b8bd-c8ae1b69a085",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": []
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/auth/verify-email?token=string",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "auth",
+                "verify-email"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "string",
+                  "description": "Verify Token"
+                }
+              ]
+            },
+            "description": "Verify a user's email using a JWT token.\n\n:param token: Verification token sent to the user's email.\n:type token: str\n\n:param db: Active database session.\n:type db: Session\n\n:raises HTTPException: If the token is invalid or user does not exist.\n\n:return: Confirmation message.\n:rtype: Message"
+          },
+          "response": [
+            {
+              "id": "3a749cdc-4a25-4171-a14e-2af567827a14",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "\"token\"",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/verify-email?token=string",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "verify-email"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "string",
+                      "description": "Verify token"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": \"string\"\n}"
+            },
+            {
+              "id": "bc676ad0-f93d-4d15-ba87-c649a62434b1",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "\"token\"",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/auth/verify-email?token=string",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "auth",
+                    "verify-email"
+                  ],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "string",
+                      "description": "Verify token"
+                    }
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        }
+      ],
+      "id": "090b0b09-0b21-47ad-ac3c-a4c0b1e41086"
+    },
+    {
+      "name": "admin users",
+      "item": [
+        {
+          "name": "List Users",
+          "id": "09cd7337-9619-4f91-b796-312ba5bf92aa",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/users/?page=1&limit=20",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "admin",
+                "users",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Retrieves a paginated list of users.\n\n:param page: Page number for pagination.\n:type page: int\n\n:param limit: Number of results per page.\n:type limit: int\n\n:param db: Active database session.\n:type db: Session\n\n:return: A list of users corresponding to the selected page.\n:rtype: list[UserListItem]"
+          },
+          "response": [
+            {
+              "id": "7ffe13ca-5bd0-48da-a3f7-4a6094dd31fc",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer <token>",
+                    "description": "Added as a part of security scheme: bearer"
+                  }
+                ],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/admin/users/?page=1&limit=20",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "admin",
+                    "users",
+                    ""
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "[\n  {\n    \"email\": \"L-wS@bqxULFEpHasWlnYgsCNFwLLhRdRAIvxd.xrt\",\n    \"role\": \"string\",\n    \"is_verified\": true,\n    \"is_active\": false,\n    \"id\": 2718\n  },\n  {\n    \"email\": \"abYFHdM0MGn@TpWgDMFyjBXIZfqlEKYdnOIBqJz.tr\",\n    \"role\": \"string\",\n    \"is_verified\": false,\n    \"is_active\": true,\n    \"id\": 8597\n  }\n]"
+            },
+            {
+              "id": "f78f9da4-abae-4bb5-8618-95ab331d3039",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer <token>",
+                    "description": "Added as a part of security scheme: bearer"
+                  }
+                ],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/admin/users/?page=1&limit=20",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "admin",
+                    "users",
+                    ""
+                  ],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Disable User",
+          "id": "834e42b7-b34b-4b5b-a8f0-d27083ed52c2",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/users/:user_id/disable",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "admin",
+                "users",
+                ":user_id",
+                "disable"
+              ],
+              "variable": [
+                {
+                  "key": "user_id",
+                  "value": "1203",
+                  "description": "User's ID"
+                }
+              ]
+            },
+            "description": "Disables a user account.\n\n:param user_id: ID of the user to disable.\n:type user_id: int\n\n:param db: Active database session.\n:type db: Session\n\n:return: The updated user record with `is_active` set to False.\n:rtype: UserDetail"
+          },
+          "response": [
+            {
+              "id": "1ecd7346-7a32-4f53-99b7-5821d5eb60e6",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer <token>",
+                    "description": "Added as a part of security scheme: bearer"
+                  }
+                ],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/admin/users/:user_id/disable",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "admin",
+                    "users",
+                    ":user_id",
+                    "disable"
+                  ],
+                  "variable": [
+                    {
+                      "key": "user_id",
+                      "value": "1203",
+                      "description": "User's ID"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"email\": \"7VH6@SvGnkMmmvKh.kn\",\n  \"role\": \"string\",\n  \"is_verified\": false,\n  \"is_active\": true,\n  \"id\": 8621\n}"
+            },
+            {
+              "id": "81d1125a-220c-485d-9db1-44104a57ea3d",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer <token>",
+                    "description": "Added as a part of security scheme: bearer"
+                  }
+                ],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/admin/users/:user_id/disable",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "admin",
+                    "users",
+                    ":user_id",
+                    "disable"
+                  ],
+                  "variable": [
+                    {
+                      "key": "user_id",
+                      "value": "1203",
+                      "description": "User's ID"
+                    }
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Enable User",
+          "id": "70948871-2aaa-4134-bc1a-a6dea63c8f04",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/users/:user_id/enable",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "admin",
+                "users",
+                ":user_id",
+                "enable"
+              ],
+              "variable": [
+                {
+                  "key": "user_id",
+                  "value": "1203",
+                  "description": "User's ID"
+                }
+              ]
+            },
+            "description": "Enables a previously disabled user account.\n\n:param user_id: ID of the user to enable.\n:type user_id: int\n\n:param db: Active database session.\n:type db: Session\n\n:return: The updated user record with `is_active` set to True.\n:rtype: UserDetail"
+          },
+          "response": [
+            {
+              "id": "3cfeede1-5c10-4382-8c41-8328c4424e27",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer <token>",
+                    "description": "Added as a part of security scheme: bearer"
+                  }
+                ],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/admin/users/:user_id/enable",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "admin",
+                    "users",
+                    ":user_id",
+                    "enable"
+                  ],
+                  "variable": [
+                    {
+                      "key": "user_id",
+                      "value": "1203",
+                      "description": "User's ID"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"email\": \"7VH6@SvGnkMmmvKh.kn\",\n  \"role\": \"string\",\n  \"is_verified\": false,\n  \"is_active\": true,\n  \"id\": 8621\n}"
+            },
+            {
+              "id": "9ae5d95f-e220-4637-a333-6e923eb0b14e",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer <token>",
+                    "description": "Added as a part of security scheme: bearer"
+                  }
+                ],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/admin/users/:user_id/enable",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "admin",
+                    "users",
+                    ":user_id",
+                    "enable"
+                  ],
+                  "variable": [
+                    {
+                      "key": "user_id",
+                      "value": "1203",
+                      "description": "User's ID"
+                    }
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Admin Dashboard",
+          "id": "11a300c8-5136-46fe-89a1-4228da4c5043",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/admin/users/admin/dashboard",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "admin",
+                "users",
+                "admin",
+                "dashboard"
+              ]
+            },
+            "description": "Returns a simple response for validating admin access.\n\n:return: A message confirming access to the admin dashboard.\n:rtype: dict"
+          },
+          "response": [
+            {
+              "id": "ed4126c0-754c-4576-a554-8448c5ed3d0c",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer <token>",
+                    "description": "Added as a part of security scheme: bearer"
+                  }
+                ],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/admin/users/admin/dashboard",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "admin",
+                    "users",
+                    "admin",
+                    "dashboard"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"string\"\n}"
+            }
+          ]
+        }
+      ],
+      "id": "c2b24044-a010-4005-b0f2-9f662bda435b"
+    },
+    {
+      "name": "products",
+      "item": [
+        {
+          "name": "List Products",
+          "id": "84df8693-ad50-4e94-ac3e-5d5f4740c903",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/products/?q=&skip=0&limit=20",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "products",
+                ""
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "",
+                  "description": "search by name substring"
+                },
+                {
+                  "key": "skip",
+                  "value": "0"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "List products with optional name filtering and pagination.\n\n:param q: Optional substring to search in product names.\n:type q: str | None\n\n:param skip: Number of items to skip.\n:type skip: int\n\n:param limit: Maximum number of items to return.\n:type limit: int\n\n:param db: Active database session.\n:type db: Session\n\n:return: List of matching products.\n:rtype: list[ProductOut]"
+          },
+          "response": [
+            {
+              "id": "91fd40b8-48d5-439d-a348-9ae50d46fb18",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/products/?q=&skip=0&limit=20",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "products",
+                    ""
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "",
+                      "description": "search by name substring"
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "[\n  {\n    \"name\": \"string\",\n    \"price\": 5753.893542802415,\n    \"stock\": 4265,\n    \"id\": 8245,\n    \"description\": \"string\",\n    \"created_at\": \"1993-01-08T03:14:13.364Z\",\n    \"updated_at\": \"2023-07-08T04:18:09.707Z\"\n  },\n  {\n    \"name\": \"string\",\n    \"price\": 882.4982536826509,\n    \"stock\": 9712,\n    \"id\": 3236,\n    \"description\": \"string\",\n    \"created_at\": \"1978-05-24T09:14:12.958Z\",\n    \"updated_at\": \"1997-06-25T09:39:33.290Z\"\n  }\n]"
+            },
+            {
+              "id": "d7fcdde2-0b89-4ed6-894f-21b08287aade",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/products/?q=&skip=0&limit=20",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "products",
+                    ""
+                  ],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "",
+                      "description": "search by name substring"
+                    },
+                    {
+                      "key": "skip",
+                      "value": "0"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Product",
+          "id": "62718f9e-5863-447e-8f79-297dd0cf0555",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Product's name\",\n  \"price\": 10.00,\n  \"stock\": 1,\n  \"description\": \"Products' description\"\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/products/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "products",
+                ""
+              ]
+            },
+            "description": "Create a new product. Admin or superadmin only.\n\n:param payload: Product creation data.\n:type payload: ProductCreate\n\n:param db: Active database session.\n:type db: Session\n\n:return: Newly created product.\n:rtype: Product"
+          },
+          "response": [
+            {
+              "id": "61c53bac-6276-48ca-8a5d-d1b9586772a7",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer <token>",
+                    "description": "Added as a part of security scheme: bearer"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Product's name\",\n  \"price\": 10.00,\n  \"stock\": 1,\n  \"description\": \"Products' description\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/products/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "products",
+                    ""
+                  ]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"name\": \"Product's name\",\n  \"price\": 10.00,\n  \"stock\": 21,\n  \"id\": 4887,\n  \"description\": \"Product's description\",\n  \"created_at\": \"1952-12-19T04:49:19.157Z\",\n  \"updated_at\": \"2004-10-20T00:42:28.698Z\"\n}"
+            },
+            {
+              "id": "d308abee-7a4e-4583-9fbc-432f273af381",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer <token>",
+                    "description": "Added as a part of security scheme: bearer"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Product's name\",\n  \"price\": 10.00,\n  \"stock\": 1,\n  \"description\": \"Products' description\"\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/products/",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "products",
+                    ""
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Product",
+          "id": "724429ed-78a7-4511-950f-600d6b84711c",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/products/:product_id",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "products",
+                ":product_id"
+              ],
+              "variable": [
+                {
+                  "key": "product_id",
+                  "value": "2244",
+                  "description": "Product's ID"
+                }
+              ]
+            },
+            "description": "Retrieve a single product by its ID.\n\n:param product_id: ID of the product.\n:type product_id: int\n\n:param db: Active database session.\n:type db: Session\n\n:return: Product details if found.\n:rtype: ProductOut"
+          },
+          "response": [
+            {
+              "id": "7c25adc8-c66f-4007-97c8-b6bdc94d8917",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/products/:product_id",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "products",
+                    ":product_id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "product_id",
+                      "value": "2244",
+                      "description": "Product's ID"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"name\": \"Product's name\",\n  \"price\": 10.00,\n  \"stock\": 1,\n  \"id\": 4887,\n  \"description\": \"Product's description\",\n  \"created_at\": \"1952-12-19T04:49:19.157Z\",\n  \"updated_at\": \"2004-10-20T00:42:28.698Z\"\n}"
+            },
+            {
+              "id": "11d8d186-beb0-4d2e-89a1-822b5bc16278",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/products/:product_id",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "products",
+                    ":product_id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "product_id",
+                      "value": "2244",
+                      "description": "Product's ID"
+                    }
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Product",
+          "id": "72c05e97-128f-4508-9c89-062978cc0dec",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New product name\",\n  \"description\": \"New product description\",\n  \"price\": 10.00,\n  \"stock\": 1\n}",
+              "options": {
+                "raw": {
+                  "headerFamily": "json",
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/products/:product_id",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "products",
+                ":product_id"
+              ],
+              "variable": [
+                {
+                  "key": "product_id",
+                  "value": "2244",
+                  "description": "Product's ID"
+                }
+              ]
+            },
+            "description": "Update an existing product. Admin or superadmin only.\n\n:param product_id: ID of the product to update.\n:type product_id: int\n\n:param product_in: Fields to update.\n:type product_in: ProductUpdate\n\n:param db: Active database session.\n:type db: Session\n\n:return: Updated product.\n:rtype: Product"
+          },
+          "response": [
+            {
+              "id": "609b1217-1c64-4d65-a6fd-3adb7375f456",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer <token>",
+                    "description": "Added as a part of security scheme: bearer"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"New product name\",\n  \"description\": \"New product description\",\n  \"price\": 10.00,\n  \"stock\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/products/:product_id",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "products",
+                    ":product_id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "product_id",
+                      "value": "2244",
+                      "description": "Product's ID"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"name\": \"New product name\",\n  \"price\": 10.00,\n  \"stock\": 1,\n  \"id\": 4887,\n  \"description\": \"New product description\",\n  \"created_at\": \"1952-12-19T04:49:19.157Z\",\n  \"updated_at\": \"2004-10-20T00:42:28.698Z\"\n}"
+            },
+            {
+              "id": "aed787e6-1cc9-429c-aa24-2363900e46fe",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer <token>",
+                    "description": "Added as a part of security scheme: bearer"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"New product name\",\n  \"description\": \"New product description\",\n  \"price\": 10.00,\n  \"stock\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "headerFamily": "json",
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "http://127.0.0.1:8000/products/:product_id",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "products",
+                    ":product_id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "product_id",
+                      "value": "2244",
+                      "description": "Product's name"
+                    }
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Product",
+          "id": "d7821dc7-198f-4b24-8362-bd6951afde7c",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{bearerToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/products/:product_id",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "products",
+                ":product_id"
+              ],
+              "variable": [
+                {
+                  "key": "product_id",
+                  "value": "2244",
+                  "description": "Product's ID"
+                }
+              ]
+            },
+            "description": "Delete a product. Superadmin only (enforced by admin_required + role system).\n\n:param product_id: ID of the product to delete.\n:type product_id: int\n\n:param db: Active database session.\n:type db: Session\n\n:return: Deleted product data.\n:rtype: ProductOut"
+          },
+          "response": [
+            {
+              "id": "9d7b3ac2-f2af-4ccb-a6d1-2802648fdca0",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer <token>",
+                    "description": "Added as a part of security scheme: bearer"
+                  }
+                ],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/products/:product_id",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "products",
+                    ":product_id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "product_id",
+                      "value": "2244",
+                      "description": "Product's ID"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"name\": \"Product's name\",\n  \"price\": 10.00,\n  \"stock\": 1,\n  \"id\": 4887,\n  \"description\": \"Product's description\",\n  \"created_at\": \"1952-12-19T04:49:19.157Z\",\n  \"updated_at\": \"2004-10-20T00:42:28.698Z\"\n}"
+            },
+            {
+              "id": "72a0d5ac-c77a-4119-9035-5dd0388d4e77",
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer <token>",
+                    "description": "Added as a part of security scheme: bearer"
+                  }
+                ],
+                "url": {
+                  "raw": "http://127.0.0.1:8000/products/:product_id",
+                  "protocol": "http",
+                  "host": [
+                    "127",
+                    "0",
+                    "0",
+                    "1"
+                  ],
+                  "port": "8000",
+                  "path": [
+                    "products",
+                    ":product_id"
+                  ],
+                  "variable": [
+                    {
+                      "key": "product_id",
+                      "value": "2244",
+                      "description": "Product's ID"
+                    }
+                  ]
+                }
+              },
+              "status": "Unprocessable Entity (WebDAV) (RFC 4918)",
+              "code": 422,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"detail\": [\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    },\n    {\n      \"loc\": [\n        \"string\",\n        \"string\"\n      ],\n      \"msg\": \"string\",\n      \"type\": \"string\"\n    }\n  ]\n}"
+            }
+          ]
+        }
+      ],
+      "id": "82e1fbfc-bbe4-4d80-8148-147f26ca62f1"
+    },
+    {
+      "name": "/",
+      "item": [
+        {
+          "name": "Root",
+          "id": "7bc5d5ad-1e2f-4ff6-bb68-3ca1f8875824",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "http://127.0.0.1:8000/",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                ""
+              ]
+            },
+            "description": "Root endpoint used for health checking.\n\n:return: dict[str, str]: A simple JSON message confirming that the API is running."
+          },
+          "response": [
+            {
+              "id": "ad14ecda-b5f6-46e3-aca4-1c10f5a33f60",
+              "name": "Successful Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    ""
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": ""
+            }
+          ]
+        }
+      ],
+      "id": "0fa2fb4c-7bdf-4cc1-8903-cffaf53d1d7b"
+    }
+  ],
+  "event": [
+    {
+      "id": "bc3a6ce8-0cd0-4885-ade8-970b26cb90d9",
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// ===================================",
+          "// COLLECTION-LEVEL TEST SCRIPTS",
+          "// Auth API - Comprehensive Testing",
+          "// ===================================",
+          "",
+          "// 1. RESPONSE TIME PERFORMANCE CHECK",
+          "pm.test(\"Response time is acceptable (< 2000ms)\", function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+          "});",
+          "",
+          "// 2. BASIC RESPONSE VALIDATION",
+          "pm.test(\"Response has valid status code\", function () {",
+          "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 204, 400, 401, 403, 404, 422, 500]);",
+          "});",
+          "",
+          "// 3. CONTENT-TYPE VALIDATION",
+          "pm.test(\"Response has Content-Type header\", function () {",
+          "    pm.response.to.have.header(\"Content-Type\");",
+          "});",
+          "",
+          "// 4. RESPONSE BODY EXISTS FOR NON-204 RESPONSES",
+          "if (pm.response.code !== 204) {",
+          "    pm.test(\"Response body is not empty\", function () {",
+          "        pm.expect(pm.response.text()).to.not.be.empty;",
+          "    });",
+          "}",
+          "",
+          "// 5. JSON RESPONSE VALIDATION (if applicable)",
+          "if (pm.response.headers.get(\"Content-Type\") && pm.response.headers.get(\"Content-Type\").includes(\"application/json\")) {",
+          "    pm.test(\"Response is valid JSON\", function () {",
+          "        pm.expect(() => pm.response.json()).to.not.throw();",
+          "    });",
+          "}",
+          "",
+          "// 6. SECURITY HEADERS CHECK",
+          "pm.test(\"Security: No sensitive data in response headers\", function () {",
+          "    const headers = pm.response.headers;",
+          "    const sensitiveHeaders = ['x-api-key', 'authorization', 'password'];",
+          "    ",
+          "    sensitiveHeaders.forEach(header => {",
+          "        pm.expect(headers.has(header)).to.be.false;",
+          "    });",
+          "});",
+          "",
+          "// 7. ERROR RESPONSE STRUCTURE VALIDATION",
+          "if (pm.response.code >= 400) {",
+          "    pm.test(\"Error response has proper structure\", function () {",
+          "        const jsonData = pm.response.json();",
+          "        pm.expect(jsonData).to.have.any.keys('error', 'message', 'detail', 'errors');",
+          "    });",
+          "}",
+          "",
+          "// 8. SUCCESS RESPONSE VALIDATION",
+          "if (pm.response.code >= 200 && pm.response.code < 300) {",
+          "    pm.test(\"Successful response received\", function () {",
+          "        pm.response.to.be.success;",
+          "    });",
+          "}",
+          "",
+          "// 9. TOKEN VALIDATION (if present in response)",
+          "if (pm.response.code === 200 || pm.response.code === 201) {",
+          "    try {",
+          "        const jsonData = pm.response.json();",
+          "        ",
+          "        // Check for access token",
+          "        if (jsonData.access_token) {",
+          "            pm.test(\"Access token is present and valid format\", function () {",
+          "                pm.expect(jsonData.access_token).to.be.a('string');",
+          "                pm.expect(jsonData.access_token.length).to.be.above(10);",
+          "            });",
+          "            ",
+          "            // Store token for subsequent requests",
+          "            pm.environment.set(\"access_token\", jsonData.access_token);",
+          "        }",
+          "        ",
+          "        // Check for refresh token",
+          "        if (jsonData.refresh_token) {",
+          "            pm.test(\"Refresh token is present and valid format\", function () {",
+          "                pm.expect(jsonData.refresh_token).to.be.a('string');",
+          "                pm.expect(jsonData.refresh_token.length).to.be.above(10);",
+          "            });",
+          "            ",
+          "            // Store refresh token",
+          "            pm.environment.set(\"refresh_token\", jsonData.refresh_token);",
+          "        }",
+          "        ",
+          "        // Check for token type",
+          "        if (jsonData.token_type) {",
+          "            pm.test(\"Token type is specified\", function () {",
+          "                pm.expect(jsonData.token_type).to.be.a('string');",
+          "                pm.expect(jsonData.token_type.toLowerCase()).to.be.oneOf(['bearer', 'jwt', 'token']);",
+          "            });",
+          "        }",
+          "        ",
+          "        // Check for expiry information",
+          "        if (jsonData.expires_in) {",
+          "            pm.test(\"Token expiry information is valid\", function () {",
+          "                pm.expect(jsonData.expires_in).to.be.a('number');",
+          "                pm.expect(jsonData.expires_in).to.be.above(0);",
+          "            });",
+          "        }",
+          "    } catch (e) {",
+          "        // Not a JSON response or no token data",
+          "    }",
+          "}",
+          "",
+          "// 10. AUTHENTICATION ERROR HANDLING",
+          "if (pm.response.code === 401) {",
+          "    pm.test(\"Unauthorized: Authentication required\", function () {",
+          "        pm.expect(pm.response.code).to.equal(401);",
+          "    });",
+          "    ",
+          "    pm.test(\"Unauthorized response has error message\", function () {",
+          "        const jsonData = pm.response.json();",
+          "        pm.expect(jsonData).to.have.any.keys('error', 'message', 'detail');",
+          "    });",
+          "}",
+          "",
+          "// 11. FORBIDDEN ACCESS HANDLING",
+          "if (pm.response.code === 403) {",
+          "    pm.test(\"Forbidden: Insufficient permissions\", function () {",
+          "        pm.expect(pm.response.code).to.equal(403);",
+          "    });",
+          "}",
+          "",
+          "// 12. RATE LIMITING CHECK",
+          "pm.test(\"No rate limiting encountered\", function () {",
+          "    pm.expect(pm.response.code).to.not.equal(429);",
+          "});",
+          "",
+          "// 13. SERVER ERROR HANDLING",
+          "if (pm.response.code >= 500) {",
+          "    pm.test(\"Server error detected\", function () {",
+          "        pm.expect(pm.response.code).to.be.at.least(500);",
+          "    });",
+          "    ",
+          "    console.error(\"Server error encountered:\", pm.response.status, pm.response.text());",
+          "}",
+          "",
+          "// 14. RESPONSE SIZE CHECK",
+          "pm.test(\"Response size is reasonable (< 5MB)\", function () {",
+          "    const responseSize = pm.response.responseSize || 0;",
+          "    pm.expect(responseSize).to.be.below(5 * 1024 * 1024);",
+          "});",
+          "",
+          "// 15. NO SQL INJECTION IN ERROR MESSAGES",
+          "if (pm.response.code >= 400) {",
+          "    pm.test(\"Security: No SQL error messages exposed\", function () {",
+          "        const responseText = pm.response.text().toLowerCase();",
+          "        const sqlKeywords = ['select', 'insert', 'update', 'delete', 'drop', 'table', 'database'];",
+          "        ",
+          "        let hasSqlExposure = false;",
+          "        sqlKeywords.forEach(keyword => {",
+          "            if (responseText.includes('sql') && responseText.includes(keyword)) {",
+          "                hasSqlExposure = true;",
+          "            }",
+          "        });",
+          "        ",
+          "        pm.expect(hasSqlExposure).to.be.false;",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "id": "2995c927-c86f-414a-85ed-465d24bb7e15",
+      "key": "baseUrl",
+      "value": "/"
+    }
+  ]
+}
