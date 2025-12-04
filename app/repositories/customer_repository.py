@@ -29,7 +29,6 @@ class CustomerRepository:
 
         except IntegrityError as e:
             self.db.rollback()
-            print("\n\n❌ SQLITE ERROR:", e.orig, "\n\n")
 
             msg = str(e.orig)
 
@@ -130,16 +129,16 @@ class CustomerRepository:
 
     def exists_email(self, email: str) -> bool:
         return (
-                self.db.query(Customer)
-                .filter(Customer.email == email, Customer.deleted_at.is_(None))
-                .first()
-                is not None
+            self.db.query(Customer)
+            .filter(Customer.email == email, Customer.deleted_at.is_(None))
+            .first()
+            is not None
         )
 
     def exists_cpf_cnpj(self, cpf_cnpj: str) -> bool:
         return (
-                self.db.query(Customer)
-                .filter(Customer.cpf_cnpj == cpf_cnpj, Customer.deleted_at.is_(None))
-                .first()
-                is not None
+            self.db.query(Customer)
+            .filter(Customer.cpf_cnpj == cpf_cnpj, Customer.deleted_at.is_(None))
+            .first()
+            is not None
         )

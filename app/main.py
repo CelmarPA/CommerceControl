@@ -24,7 +24,7 @@ from app.routers import (
     auth,
     admin_users,
     products,
-    stock, customer
+    stock, customer, supplier
 )
 
 from app.core.exception_handlers import (
@@ -85,6 +85,7 @@ app.include_router(admin_users.router)
 app.include_router(products.router)
 app.include_router(stock.router)
 app.include_router(customer.router)
+app.include_router(supplier.router)
 
 # ----------------------------------------------------------------------
 # Root Route
