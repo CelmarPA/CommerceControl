@@ -18,8 +18,8 @@ from sqlalchemy.orm import Session
 from typing import Callable
 
 
-from CommerceControl.tests.conftest import create_user
-from CommerceControl.app.models import SecurityLog
+from tests.conftest import create_user
+from app.models import SecurityLog
 
 
 def test_create_user_security_log(db_session: Session, create_user: Callable) -> None:

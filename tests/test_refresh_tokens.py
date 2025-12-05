@@ -17,9 +17,9 @@ from datetime import datetime, timedelta, timezone
 from fastapi.testclient import TestClient
 from typing import Callable
 
-from CommerceControl.app.repositories import TokenRepository
-from CommerceControl.app.core.tokens import hash_token
-from CommerceControl.tests.conftest import TestingSessionLocal, create_user
+from app.repositories import TokenRepository
+from app.core.tokens import hash_token
+from tests.conftest import TestingSessionLocal, create_user
 
 
 def test_refresh_token_valid(test_client: TestClient, create_user: Callable) -> None:

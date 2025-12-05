@@ -1,6 +1,6 @@
 # app/models/customer.py
 
-from sqlalchemy import Column, Integer, String, DateTime, func, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, Boolean, Numeric
 
 from app.database import Base
 
@@ -18,6 +18,8 @@ class Customer(Base):
     zip_code = Column(String(10), nullable=True)
     city = Column(String(10), nullable=True)
     state = Column(String(15), nullable=True)
+
+    credit_limit = Column(Numeric(12, 2), nullable=True,default=0)
 
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime(timezone=True), nullable=False)

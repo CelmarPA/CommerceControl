@@ -14,7 +14,7 @@ All actual email sending is mocked to avoid sending real emails.
 
 from fastapi.testclient import TestClient
 
-from CommerceControl.app.services.email_service import EmailService
+from app.services.email_service import EmailService
 
 
 def test_send_verification_email(monkeypatch) -> None:

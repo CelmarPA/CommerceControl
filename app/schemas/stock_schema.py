@@ -1,7 +1,7 @@
 # app/schema/stock_schema.py
 
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Literal
 from datetime import datetime
 
 
@@ -13,7 +13,8 @@ class StockMovementBase(BaseModel):
 
 
 class StockMovementCreate(StockMovementBase):
-    pass
+    movement_type: Literal["IN", "OUT", "ADJUST"]
+    description: Optional[str]
 
 
 class StockMovementRead(StockMovementBase):
@@ -22,4 +23,3 @@ class StockMovementRead(StockMovementBase):
 
     class Config:
         from_attributes = True
-

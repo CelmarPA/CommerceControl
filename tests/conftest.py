@@ -20,10 +20,10 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
 from typing import Callable
 
-from CommerceControl.app.main import app, limiter
-from CommerceControl.app.database import Base, get_db
-from CommerceControl.app.models import User, Product
-from CommerceControl.app.core.security import hash_password
+from app.main import app, limiter
+from app.database import Base, get_db
+from app.models import User, Product
+from app.core.security import hash_password
 
 
 # --------------------------
