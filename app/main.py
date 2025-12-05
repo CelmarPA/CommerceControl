@@ -28,7 +28,9 @@ from app.routers import (
     customer,
     supplier,
     sales,
-    receivables
+    receivables,
+    purchase_orders,
+    purchase_receipts
 )
 
 from app.core.exception_handlers import (
@@ -92,6 +94,8 @@ app.include_router(customer.router)
 app.include_router(supplier.router)
 app.include_router(receivables.router)
 app.include_router(sales.router)
+app.include_router(purchase_orders.router)
+app.include_router(purchase_receipts.router)
 
 # ----------------------------------------------------------------------
 # Root Route

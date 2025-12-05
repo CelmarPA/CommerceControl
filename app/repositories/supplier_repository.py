@@ -129,10 +129,10 @@ class SupplierRepository:
             is not None
         )
 
-    def exists_cnpj(self, cnpj: str) -> bool:
+    def exists_cnpj(self, cpf_cnpj: str) -> bool:
         return (
             self.db.query(Supplier)
-            .filter(Supplier.cnpj == cnpj, Supplier.deleted_at.is_(None))
+            .filter(Supplier.cpf_cnpj == cpf_cnpj, Supplier.deleted_at.is_(None))
             .first()
             is not None
         )

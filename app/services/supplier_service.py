@@ -18,7 +18,7 @@ class SupplierService:
         if self.repo.exists_email(payload.email):
             raise HTTPException(status_code=400, detail="Email already exists")
 
-        if self.repo.exists_cnpj(payload.cnpj):
+        if self.repo.exists_cnpj(payload.cpf_cnpj):
             raise HTTPException(status_code=400, detail="CNPJ already exists")
 
         return self.repo.create(payload)

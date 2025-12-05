@@ -1,6 +1,6 @@
 # app/models/suppliers.py
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, func
-
+from sqlalchemy.orm import relationship
 from app.database import Base
 
 
@@ -11,7 +11,7 @@ class Supplier(Base):
     id = Column(Integer, primary_key=True, index=True)
 
     name = Column(String(255), nullable=False, index=True)
-    cnpj = Column(String(32), unique=True, nullable=False, index=True)
+    cpf_cnpj = Column(String(32), unique=True, nullable=False, index=True)
 
     email = Column(String(255), nullable=True, index=True)
     phone = Column(String(32), nullable=True, index=True)
@@ -20,9 +20,12 @@ class Supplier(Base):
     city = Column(String(128), nullable=True)
     state = Column(String(32), nullable=True)
     zip_code = Column(String(32), nullable=True)
+    notes = Column(String(255), nullable=True)
 
     is_active = Column(Boolean, default=True, nullable=False)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     deleted_at = Column(DateTime(timezone=True), nullable=True)
+
+    purchase_orders = relationship("PurchaseOrder", back_populates="supplier")
