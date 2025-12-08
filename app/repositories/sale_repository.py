@@ -15,7 +15,7 @@ class SaleRepository:
 
     def create(self, sale: Sale) -> Sale:
         self.db.add(sale)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(sale)
 
         return sale
@@ -28,24 +28,25 @@ class SaleRepository:
 
     def add_item(self, item: SaleItem) -> SaleItem:
         self.db.add(item)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(item)
 
         return item
 
     def remove_item(self, item: SaleItem) -> None:
         self.db.delete(item)
-        self.db.commit()
+
+        return None
 
     def add_payment(self, payment: Payment) -> Payment:
         self.db.add(payment)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(payment)
 
         return payment
 
     def update(self, obj) -> Any:
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(obj)
 
         return obj

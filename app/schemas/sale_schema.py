@@ -7,6 +7,7 @@ from datetime import datetime
 
 from app.schemas.payment_schema import PaymentRead
 
+
 class SaleItemIn(BaseModel):
     product_id: int
     quantity: Decimal = Field(..., gt=0)
@@ -41,7 +42,7 @@ class SaleRead(BaseModel):
     payment_mode: Optional[str]
     installments: Optional[int]
     created_at: datetime
-    items: List[SaleItemIn] = []
+    items: List[SaleItemRead] = []
     payments: List[PaymentRead] = []
 
     class Config:

@@ -15,7 +15,9 @@ class Payment(Base):
     sale_id = Column(Integer, ForeignKey('sales.id'), nullable=False, index=True)
     method = Column(String(32), nullable=False)  # cash, pix, card, credit
     amount = Column(Numeric(12, 2), nullable=False)
-    provider_reference = Column(String(255), nullable=True)
+    provider_reference = Column(String(128), nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     paid_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     sale = relationship("Sale", back_populates="payments")

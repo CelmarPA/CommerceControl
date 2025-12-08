@@ -1,6 +1,7 @@
 # app/models/customer.py
 
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Numeric
+from sqlalchemy.orm import relationship
 
 from app.database import Base
 
@@ -25,5 +26,8 @@ class Customer(Base):
     created_at = Column(DateTime(timezone=True), nullable=False)
 
     deleted_at = Column(DateTime(timezone=True), nullable=True)
+
+    sales_orders = relationship("SalesOrder", back_populates="customer")
+
 
 

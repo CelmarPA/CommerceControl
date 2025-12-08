@@ -1,4 +1,5 @@
 # app/repositories/stock_repository.py
+from decimal import Decimal
 from typing import List
 
 from sqlalchemy.orm import Session
@@ -28,49 +29,53 @@ class StockRepository:
             .all()
         )
 
-        stock = 0
+        stock = Decimal("0")
 
         for m in movements:
+            qty = Decimal(m.quantity)
+
             if m.movement_type == "IN":
-                stock += m.quantity
+                stock += qty
 
             elif m.movement_type == "OUT":
-                stock -= m.quantity
+                stock -= qty
 
             elif m.movement_type == "ADJUST":
-                stock += m.quantity
+                stock += qty
 
         return stock
 
     # --------------------------
     # APPLY MOVEMENT
     # ---------------------------
-    def apply_movement(self,  payload: StockMovementCreate) -> StockMovement:
+    def apply_movement_simple_no_commit(self, product_id: int, quantity: float, movement_type: str, description: str = "") -> StockMovement:
         """
-        Registers a stock movement and validates inventory rules.
+        Applies the transaction without committing it. Used by services that manage transactions.
         """
 
-        product = self.db.query(Product).filter(Product.id == payload.product_id).first()
+        product = self.db.query(Product).filter(Product.id == product_id).first()
 
         if not product:
             raise ValueError("Product not found")
 
-        # Calculates CURRENT inventory without a physical field
-        current_stock = self.get_current_stock(payload.product_id)
+        # validate stock if it is OUT
+        if movement_type == "OUT":
+            current_stock = self.get_current_stock(product_id)
 
-        if payload.movement_type == "OUT" and current_stock <  payload.quantity:
-            raise ValueError("Not enough stock")
+            if current_stock is None or float(current_stock) < float(quantity):
+                raise ValueError("Not enough stock")
+
 
         movement = StockMovement(
-            product_id=payload.product_id,
-            quantity=payload.quantity,
-            movement_type=payload.movement_type,
-            description=payload.description,
+            product_id=product_id,
+            quantity=quantity,
+            movement_type=movement_type,
+            description=description
         )
 
         try:
             self.db.add(movement)
-            self.db.commit()
+            self.db.flush()
             self.db.refresh(movement)
 
             return movement
@@ -79,22 +84,6 @@ class StockRepository:
             self.db.rollback()
 
             raise ValueError("Failed to create movement")
-
-    # --------------------------
-    # SIMPLE MODE — USED AT PDV
-    # --------------------------
-    def apply_movement_simple(self, product_id: int, quantity: float, movement_type: str, description: str = "") -> StockMovement:
-        """
-        Helper used by PDV
-        """
-
-        payload = StockMovementCreate(
-            product_id=product_id,
-            quantity=quantity,
-            movement_type=movement_type,
-            description=description
-        )
-        return self.apply_movement(payload)
 
     # --------------------------
     # LIST MOVEMENTS

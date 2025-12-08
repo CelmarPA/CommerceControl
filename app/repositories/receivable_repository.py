@@ -14,7 +14,7 @@ class ReceivableRepository:
 
     def create(self, ar: AccountReceivable) -> AccountReceivable:
         self.db.add(ar)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(ar)
 
         return ar
@@ -30,13 +30,13 @@ class ReceivableRepository:
 
     def add_payment(self, receivable_payment: ReceivablePayment) -> ReceivablePayment:
         self.db.add(receivable_payment)
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(receivable_payment)
 
         return receivable_payment
 
     def update(self, obj) -> Any:
-        self.db.commit()
+        self.db.flush()
         self.db.refresh(obj)
 
         return obj

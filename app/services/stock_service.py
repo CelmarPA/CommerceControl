@@ -9,10 +9,16 @@ from app.repositories.stock_repository import StockRepository
 class StockService:
 
     def __init__(self, db: Session):
+        self.db = db
         self.repo = StockRepository(db)
 
-    def apply_movement(self, payload: StockMovementCreate) -> Callable:
-        return self.repo.apply_movement(payload)
+    def apply_movement(self, payload: StockMovementCreate) -> StockMovement:
+        movement = self.repo.apply_movement_simple_no_commit(**payload.model_dump())
+
+        self.db.commit()
+        self.db.refresh(movement)
+
+        return movement
 
     def list(self, product_id: int | None = None) -> List[StockMovement]:
         return self.repo.list(product_id)

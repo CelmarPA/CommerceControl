@@ -1,7 +1,8 @@
 # app/routers/sales.py
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlalchemy.orm import Session
+from typing import List
 
 from app.database import get_db
 from app.schemas.sale_schema import SaleCreate, SaleRead, SaleItemIn, SaleItemRead
@@ -19,6 +20,21 @@ def create_sale(payload: SaleCreate, db: Session = Depends(get_db)):
     return service.create(payload)
 
 
+@router.get("/", response_model=List[SaleRead], dependencies=[Depends(admin_required)])
+def list_sales(db: Session = Depends(get_db)) -> List[SaleRead]:
+    service = SalesService(db)
+    return service.list()
+
+
+@router.get("/{sale_id}", response_model=SaleRead, dependencies=[Depends(admin_required)])
+def get_sale(sale_id: int, db: Session = Depends(get_db)):
+    service = SalesService(db)
+    sale = service.repo.get(sale_id)
+    if not sale:
+        raise HTTPException(status_code=404, detail="Sale not found")
+    return sale
+
+
 @router.post("/{sale_id}/items", response_model=SaleItemRead, dependencies=[Depends(admin_required)])
 def add_item(sale_id: int, payload: SaleItemIn, db: Session = Depends(get_db)):
     service = SalesService(db)
@@ -34,12 +50,12 @@ def remove_item(sale_id: int, item_id: int, db: Session = Depends(get_db)) -> di
 
     return {"detail": "Item removed"}
 
-@router.post("{sale_id}/pay", response_model=dict, dependencies=[Depends(admin_required)])
+@router.post("/{sale_id}/pay", response_model=dict, dependencies=[Depends(admin_required)])
 def apply_payment(sale_id: int, payload: PaymentIn, db: Session = Depends(get_db), user_id: int | None = None):
     service = SalesService(db)
     p = service.apply_payment(sale_id, payload, user_id)
 
-    return {"id": p.id, "amount": p.amount}
+    return {"id": p.id, "amount": str(p.amount)}
 
 
 @router.post("/{sale_id}/checkout", response_model=SaleRead,  dependencies=[Depends(admin_required)])

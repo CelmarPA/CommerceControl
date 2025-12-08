@@ -8,7 +8,7 @@ from datetime import datetime
 
 class StockMovementBase(BaseModel):
     product_id: int
-    quantity: int = Field(gt=0,  description="Movement must be greater than zero")
+    quantity: Decimal = Field(gt=0,  description="Movement must be greater than zero")
     movement_type: str = Field(pattern="^(IN|OUT|ADJUST)$")
     description: Optional[str] = None
 
