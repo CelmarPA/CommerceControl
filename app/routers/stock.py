@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from typing import List, Callable
 
 from app.database import get_db
-from app.schemas.stock_schema import StockMovementCreate, StockMovementRead
+from app.schemas.stock_schema import StockMovementCreate, StockMovementRead, StockCurrentRead
 from app.services.stock_service import StockService
 from app.core.permissions import admin_required
 
@@ -28,3 +28,10 @@ def list_stock_movement(product_id: int | None = None, db: Session = Depends(get
     service = StockService(db)
 
     return service.list(product_id)
+
+
+@router.get("/{product_id}/current", response_model=StockCurrentRead)
+def get_current_stock(product_id: int, db: Session = Depends(get_db)) -> StockCurrentRead:
+    service = StockService(db)
+
+    return service.get_stock(product_id)

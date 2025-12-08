@@ -1,4 +1,5 @@
 # app/schema/stock_schema.py
+from decimal import Decimal
 
 from pydantic import BaseModel, Field
 from typing import Optional, Literal
@@ -23,3 +24,8 @@ class StockMovementRead(StockMovementBase):
 
     class Config:
         from_attributes = True
+
+
+class StockCurrentRead(BaseModel):
+    product_id: int
+    stock: Decimal

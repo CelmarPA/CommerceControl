@@ -72,7 +72,7 @@ class Product(Base):
     sku =  Column(String(64), unique=True, index=True, nullable=True)    # Unique SKU for inventory management
     barcode = Column(String(64), unique=True, index=True, nullable=True)
 
-    description = Column(Text, nullable=False)
+    description = Column(Text, nullable=True)
     cost_price = Column(Numeric(12, 2), nullable=True)
     sell_price = Column(Numeric(12, 2), nullable=False, default=0)
 

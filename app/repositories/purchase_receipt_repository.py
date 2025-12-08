@@ -30,62 +30,20 @@ class PurchaseReceiptRepository:
         """
 
         try:
-            # Persist receipt header
             self.db.add(receipt)
+            self.db.flush()
+
+            for item in items:
+                item.receipt_id = receipt.id
+                self.db.add(item)
+
             self.db.commit()
             self.db.refresh(receipt)
 
-            # Process items
-            for r_item in items:
-                # attach receipt_id to item
-                r_item.receipt_id = receipt.id
-                self.db.add(r_item)
-                self.db.commit()
-                self.db.refresh(r_item)
-
-                # update corresponding purchase order item
-                po_item = self.db.query(PurchaseOrderItem).filter(
-                    PurchaseOrderItem.purchase_order_id == receipt.purchase_order_id,
-                    PurchaseOrderItem.product_id == r_item.product_id
-                ).first()
-
-                if not po_item:
-                    # Rollback everything if inconsistent
-                    raise ValueError("Purchase order item not found for this product")
-
-                # Compute allowable receive quantity
-                remaining = Decimal(po_item.quantity_ordered or 0) - Decimal(po_item.quantity_received or 0)
-
-                if Decimal(r_item.quantity_received) > remaining:
-                    raise ValueError("Receipt quantity exceeds remaining ordered quantity")
-
-                # increase received quantity
-                po_item.quantity_received = Decimal(po_item.quantity_received or 0) + Decimal(r_item.quantity_received)
-
-                self.db.commit()
-                self.db.refresh(po_item)
-
-                # Create stock movement IN for received quantity
-                self.stock_repo.apply_movement_simple(
-                    product_id=r_item.product_id,
-                    quantity=float(r_item.quantity_received),
-                    movement_type="IN",
-                    description=f"Purchase order {receipt.purchase_order_id} - Receipt {receipt.id}"
-                )
-
-            # after processing items, recalc PO totals/status
-            po = self.purchase_order_repo.get(receipt.purchase_order_id)
-            self.purchase_order_repo.recalc_totals_and_status(po)
-
             return receipt
+
 
         except IntegrityError as e:
             self.db.rollback()
 
             raise ValueError(f"DB error creating receipt: {e}")
-
-        except Exception:
-            # any custom validation error -> rollback and re-raise
-            self.db.rollback()
-
-            raise

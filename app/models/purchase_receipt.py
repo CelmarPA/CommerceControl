@@ -34,6 +34,8 @@ class PurchaseReceipt(Base):
     # Imported XML file (optional)
     xml_path = Column(String(255), nullable=True)
 
+    notes = Column(String(255), nullable=True)
+
     # ===============================
     # Internal Control
     # ===============================

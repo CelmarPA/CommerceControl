@@ -17,3 +17,10 @@ class StockService:
     def list(self, product_id: int | None = None) -> List[StockMovement]:
         return self.repo.list(product_id)
 
+    def get_stock(self, product_id: int) -> StockMovement:
+        current_stock = self.repo.get_current_stock(product_id)
+
+        return {
+            "product_id": product_id,
+            "stock": current_stock
+        }
