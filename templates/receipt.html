@@ -1,0 +1,36 @@
+<!-- templates/receipt.html -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><style>
+  body{ font-family: Arial, sans-serif; font-size:12px; }
+  table{ width:100%; border-collapse:collapse; }
+  th,td{ padding:4px; border-bottom: 1px solid #ddd; text-align:left; }
+  .right{ text-align:right; }
+</style></head>
+<body>
+  <h2>Store Name</h2>
+  <div>Receipt #{{ receipt.id }}</div>
+  <div>Sale ID: {{ receipt.sale_id }}</div>
+  <div>Date: {{ receipt.created_at }}</div>
+  <hr/>
+  <table>
+    <thead><tr><th>Product</th><th>Qty</th><th class="right">Unit</th><th class="right">Subtotal</th></tr></thead>
+    <tbody>
+    {% for it in receipt.items %}
+      <tr>
+        <td>{{ it.name or ("#"+it.product_id|string) }}</td>
+        <td>{{ it.quantity }}</td>
+        <td class="right">{{ it.unit_price }}</td>
+        <td class="right">{{ it.subtotal }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  <hr/>
+  <div class="right">Subtotal: {{ receipt.subtotal }}</div>
+  <div class="right">Discount: {{ receipt.discount }}</div>
+  <div class="right"><strong>Total: {{ receipt.total }}</strong></div>
+  <div>Payments: {{ receipt.payment_summary }}</div>
+  <div>Notes: {{ receipt.notes }}</div>
+</body>
+</html>

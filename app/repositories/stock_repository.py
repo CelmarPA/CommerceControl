@@ -48,7 +48,7 @@ class StockRepository:
     # --------------------------
     # APPLY MOVEMENT
     # ---------------------------
-    def apply_movement_simple_no_commit(self, product_id: int, quantity: float, movement_type: str, description: str = "") -> StockMovement:
+    def apply_movement_simple_no_commit(self, product_id: int, quantity: Decimal, movement_type: str, description: str = "") -> StockMovement:
         """
         Applies the transaction without committing it. Used by services that manage transactions.
         """
@@ -68,7 +68,7 @@ class StockRepository:
 
         movement = StockMovement(
             product_id=product_id,
-            quantity=quantity,
+            quantity=Decimal(str(quantity)),
             movement_type=movement_type,
             description=description
         )

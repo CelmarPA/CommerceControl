@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.repositories.purchase_order_item_repository import PurchaseOrderItemRepository
 from app.repositories.purchase_order_repository import PurchaseOrderRepository
 from app.schemas.purchase_order_schema import PurchaseOrderItemCreate
-from  app.models.purchase_order_item import PurchaseOrderItem
+from app.models.purchase_order_item import PurchaseOrderItem
 
 
 class PurchaseOrderItemService:

@@ -1,6 +1,6 @@
 # app/routers/sales.py
 
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -23,6 +23,7 @@ def create_sale(payload: SaleCreate, db: Session = Depends(get_db)):
 @router.get("/", response_model=List[SaleRead], dependencies=[Depends(admin_required)])
 def list_sales(db: Session = Depends(get_db)) -> List[SaleRead]:
     service = SalesService(db)
+
     return service.list()
 
 
@@ -30,8 +31,10 @@ def list_sales(db: Session = Depends(get_db)) -> List[SaleRead]:
 def get_sale(sale_id: int, db: Session = Depends(get_db)):
     service = SalesService(db)
     sale = service.repo.get(sale_id)
+
     if not sale:
         raise HTTPException(status_code=404, detail="Sale not found")
+
     return sale
 
 
@@ -59,14 +62,14 @@ def apply_payment(sale_id: int, payload: PaymentIn, db: Session = Depends(get_db
 
 
 @router.post("/{sale_id}/checkout", response_model=SaleRead,  dependencies=[Depends(admin_required)])
-def checkout(sale_id: int, payment_mode: str, installments: int | None = None, db: Session = Depends(get_db)) -> SaleRead:
+def checkout(sale_id: int, payment_mode: str = Query(...), installments: int | None = None, db: Session = Depends(get_db)) -> SaleRead:
     service = SalesService(db)
 
     return service.checkout(sale_id, payment_mode, installments)
 
 
 @router.post("/{sale_id}/cancel", response_model=SaleRead, dependencies=[Depends(admin_required)])
-def cancel_sale(sale_id: int, db: Session = Depends(get_db)) ->SaleRead:
+def cancel_sale(sale_id: int, db: Session = Depends(get_db)) -> SaleRead:
     service = SalesService(db)
 
     return service.cancel_sale(sale_id)

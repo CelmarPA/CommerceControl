@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from typing import List, Optional
 
-from app.models.purchase_order import PurchaseOrder
+from app.models.purchase_order import PurchaseOrder, PurchaseOrderStatus
 from app.repositories.stock_repository import StockRepository
 
 
@@ -35,17 +35,10 @@ class PurchaseOrderRepository:
     def list(self) -> List[PurchaseOrder]:
         return self.db.query(PurchaseOrder).order_by(PurchaseOrder.id.desc()).all()
 
-    def update(self, po: PurchaseOrder) -> PurchaseOrder:
-        try:
-            self.db.commit()
-            self.db.refresh(po)
-
-            return po
-
-        except IntegrityError as e:
-            self.db.rollback()
-
-            raise ValueError(f"DB error updating PurchaseOrder: {e}")
+    def update_no_commit(self, po: PurchaseOrder) -> PurchaseOrder:
+        self.db.flush()
+        self.db.refresh(po)
+        return po
 
     def delete(self, po: PurchaseOrder) -> None:
         try:
@@ -61,9 +54,9 @@ class PurchaseOrderRepository:
     def recalc_totals_and_status(self, po: PurchaseOrder) -> PurchaseOrder:
         """
         Recalculates total_amount from items and sets status:
-        - PENDING if nothing received
-        - PARTIAL if some items partially received
-        - RECEIVED if all quantities received
+        - pending if nothing received
+        - partial if some items partially received
+        - received if all quantities received
         """
         total = Decimal(0)
         all_received = True
@@ -81,12 +74,12 @@ class PurchaseOrderRepository:
         po.total_amount = total
 
         if all_received and any_received:
-            po.status = "RECEIVED"
+            po.status = PurchaseOrderStatus.RECEIVED
 
         elif all_received:
-            po.status = "PARTIAL"
+            po.status = PurchaseOrderStatus.PARTIAL
 
         else:
-            po.status = "PENDING"
+            po.status = PurchaseOrderStatus.PENDING
 
-        return self.update(po)
+        return self.update_no_commit(po)

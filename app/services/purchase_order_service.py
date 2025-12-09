@@ -96,7 +96,7 @@ class PurchaseOrderService:
         if not order:
             raise HTTPException(status_code=404, detail="Purchase order not found")
 
-        if order.status != "PENDING":
+        if order.status != "pending":
             raise HTTPException(status_code=400, detail="Cannot add items after receiving has started")
 
         item = PurchaseOrderItem(
@@ -123,7 +123,7 @@ class PurchaseOrderService:
         if not order:
             raise HTTPException(status_code=404, detail="Purchase order not found")
 
-        if order.status != "PENDING":
+        if order.status != "pending":
             raise HTTPException(400, "Cannot delete an order that has receipts")
 
         self.repo.delete(order)

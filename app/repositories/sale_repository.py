@@ -35,6 +35,7 @@ class SaleRepository:
 
     def remove_item(self, item: SaleItem) -> None:
         self.db.delete(item)
+        self.db.flush()
 
         return None
 

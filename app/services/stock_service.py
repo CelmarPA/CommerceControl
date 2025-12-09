@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from typing import Callable, List
+from typing import List
 
 from app.models.stock_movement import StockMovement
 from app.schemas.stock_schema import StockMovementCreate
