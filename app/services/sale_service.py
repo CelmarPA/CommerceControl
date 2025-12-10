@@ -2,7 +2,7 @@
 
 from sqlalchemy.orm import Session
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi import HTTPException
 
 from app.repositories.sale_repository import SaleRepository
@@ -17,6 +17,8 @@ from app.models.account_receivable import AccountReceivable
 
 from app.schemas.sale_schema import SaleCreate, SaleItemIn
 from app.schemas.payment_schema import PaymentIn
+
+from app.services.credit_engine import CreditEngine
 
 
 
@@ -191,7 +193,7 @@ class SalesService:
         if not sale.items:
             raise HTTPException(status_code=400, detail="Sale has no items")
 
-        total_due = Decimal(sale.total) - Decimal(sale.discount_total or 0)
+        total_due = (Decimal(sale.total) - Decimal(sale.discount_total or 0)).quantize(Decimal("0.01"))
 
         try:
             with self.db.begin_nested():  # SAFE SAVEPOINT
@@ -217,6 +219,15 @@ class SalesService:
                 else:
                     if not sale.customer_id:
                         raise HTTPException(status_code=400, detail="Installments require a customer")
+
+                    if customer_credit_limit_check:
+                        engine = CreditEngine(self.db)
+
+                        engine.validate_sale(
+                            customer_id=sale.customer_id,
+                            sale_total=total_due,
+                            installments=installments
+                        )
 
                     from app.models.customer import Customer
 

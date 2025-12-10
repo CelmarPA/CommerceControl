@@ -20,7 +20,10 @@ class Customer(Base):
     city = Column(String(10), nullable=True)
     state = Column(String(15), nullable=True)
 
-    credit_limit = Column(Numeric(12, 2), nullable=True,default=0)
+    credit_limit = Column(Numeric(12, 2),default=0, nullable=True)
+    credit_profile = Column(String(20), default="BRONZE", nullable=True)
+    credit_score = Column(Integer, default=600,nullable=True)
+    max_overdue_days = Column(Integer, default=30, nullable=True)
 
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime(timezone=True), nullable=False)
@@ -28,6 +31,3 @@ class Customer(Base):
     deleted_at = Column(DateTime(timezone=True), nullable=True)
 
     sales_orders = relationship("SalesOrder", back_populates="customer")
-
-
-

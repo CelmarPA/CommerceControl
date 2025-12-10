@@ -18,7 +18,8 @@ from typing import Any
 
 from app.core.config import settings
 from app.core.rate_limit import limiter
-from app.database import engine, Base
+from app.database import engine, Base, SessionLocal
+from app.seeders.credit_policy_seeder import seed_default_credit_policies
 
 from app.routers import (
     auth,
@@ -32,7 +33,9 @@ from app.routers import (
     purchase_orders,
     purchase_receipts,
     sales_orders,
-    receipts
+    receipts,
+    credit,
+    credit_policy
 )
 
 from app.core.exception_handlers import (
@@ -100,6 +103,8 @@ app.include_router(purchase_orders.router)
 app.include_router(purchase_receipts.router)
 app.include_router(sales_orders.router)
 app.include_router(receipts.router)
+app.include_router(credit.router)
+app.include_router(credit_policy.router)
 
 # ----------------------------------------------------------------------
 # Root Route
@@ -113,3 +118,10 @@ def root():
     """
 
     return {"message": "Auth API is running"}
+
+
+@app.on_event("startup")
+def startup_event():
+    db = SessionLocal()
+    seed_default_credit_policies(db)
+    db.close()
