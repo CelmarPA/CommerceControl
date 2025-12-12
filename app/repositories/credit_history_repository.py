@@ -11,12 +11,12 @@ class CreditHistoryRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def create(self, ch: CreditHistory) -> CreditHistory:
-        self.db.add(ch)
+    def create(self, history: CreditHistory) -> CreditHistory:
+        self.db.add(history)
         self.db.commit()
-        self.db.refresh(ch)
+        self.db.refresh(history)
 
-        return ch
+        return history
 
     def list_for_customer(self, customer_id: int) -> List[CreditHistory]:
         return (

@@ -38,7 +38,7 @@ class CreditPolicyService:
             allow_credit=payload.allow_credit,
             max_installments=payload.max_installments or 6,
             max_sale_amount=payload.max_sale_amount or None,
-            max_percentage=payload.max_percentage_of_limit or Decimal(100),
+            max_percentage_of_limit=payload.max_percentage_of_limit or Decimal(100),
             max_delay_days=payload.max_delay_days or 30,
             max_open_invoices=payload.max_open_invoices or 5,
         )
@@ -57,7 +57,11 @@ class CreditPolicyService:
         policy.allow_credit = payload.allow_credit
         policy.max_installments = payload.max_installments or policy.max_installments
         policy.max_sale_amount = payload.max_sale_amount or policy.max_sale_amount
-        policy.max_percentage_of_limit = payload.max_percentage_of_limit or policy.max_percentage_of_limit
+        policy.max_percentage_of_limit = (
+            payload.max_percentage_of_limit
+            if payload.max_percentage_of_limit is not None
+            else policy.max_percentage_of_limit
+        )
         policy.max_delay_days = payload.max_delay_days or policy.max_delay_days
         policy.max_open_invoices = payload.max_open_invoices or policy.max_open_invoices
 

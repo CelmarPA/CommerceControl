@@ -2,7 +2,6 @@
 
 from sqlalchemy.orm import Session
 from decimal import Decimal
-from datetime import datetime, timedelta
 from fastapi import HTTPException
 
 from app.repositories.sale_repository import SaleRepository
@@ -19,7 +18,6 @@ from app.schemas.sale_schema import SaleCreate, SaleItemIn
 from app.schemas.payment_schema import PaymentIn
 
 from app.services.credit_engine import CreditEngine
-
 
 
 class SalesService:
@@ -198,9 +196,9 @@ class SalesService:
         try:
             with self.db.begin_nested():  # SAFE SAVEPOINT
 
-                # ------------------------------------------
-                # 1. IMMEDIATE PAYMENT (CASH, PIX, CARD)
-                # ------------------------------------------
+                # ======================================================
+                # 1) SPOT PAYMENT — CASH / PIX / CARD / DEBIT
+                # ======================================================
                 if payment_mode in ("cash", "card", "pix", "debit"):
                     payment = Payment(
                         sale_id=sale.id,
@@ -213,13 +211,14 @@ class SalesService:
                     sale.payment_mode = payment_mode
                     self.db.add(sale)
 
-                # ------------------------------------------
-                # 2. INSTALLMENT / CREDIT
-                # ------------------------------------------
+                # ======================================================
+                # 2) CREDIT / INSTALLMENTS
+                # ======================================================-
                 else:
                     if not sale.customer_id:
                         raise HTTPException(status_code=400, detail="Installments require a customer")
 
+                    # Validate credit rules
                     if customer_credit_limit_check:
                         engine = CreditEngine(self.db)
 
@@ -236,13 +235,16 @@ class SalesService:
                     if not customer:
                         raise HTTPException(status_code=400, detail="Customer not found")
 
+                    # --------------------------
+                    # Create Installments (AR)
+                    # --------------------------
                     n = installments or 1
                     installment_amount = Decimal(total_due / n).quantize(Decimal("0.01"))
 
-                    from datetime import timedelta
+                    from datetime import timedelta, datetime as dt
 
                     for i in range(1, n + 1):
-                        due_date = datetime.now() + timedelta(days=30 * i)
+                        due_date = dt.now() + timedelta(days=30 * i)
                         ar = AccountReceivable(
                             customer_id=customer.id,
                             sale_id=sale.id,
@@ -254,14 +256,50 @@ class SalesService:
                         )
                         self.db.add(ar)
 
+                    # --------------------------
+                    # Update Sale status
+                    # --------------------------
                     sale.status = SaleStatus.PENDING
                     sale.payment_mode = "credit"
                     sale.installments = n
                     self.db.add(sale)
 
-                # ------------------------------------------
-                # 3. STOCK MOVEMENT (OUT)
-                # ------------------------------------------
+                    # --------------------------
+                    # Update Customer Credit Used
+                    # --------------------------
+                    customer.credit_used = Decimal(customer.credit_used or 0) + total_due
+                    self.db.add(customer)
+
+                    # --------------------------
+                    # Register Credit History
+                    # --------------------------
+                    from app.services.credit_history_service import CreditHistoryService
+
+                    history = CreditHistoryService(self.db)
+                    history.record(
+                        customer_id=customer.id,
+                        event_type="sale",
+                        amount=total_due,
+                        balance_after=customer.credit_used,
+                        notes=f"Sale #{sale.id} - {n} installments"
+                    )
+
+                    # --------------------------
+                    # OPTIONAL: Recalculate Score
+                    # --------------------------
+                    engine = CreditEngine(self.db)
+
+                    new_score = engine.recalculate_score(customer.id)
+                    new_profile= engine.assign_profile(new_score)
+
+                    customer.credit_score = new_score
+                    customer.credit_profile = new_profile
+
+                    self.db.add(customer)
+
+                # ======================================================
+                # 3) STOCK MOVEMENT (OUT)
+                # ======================================================
                 for item in sale.items:
                     current_stock = self.stock_repo.get_current_stock(item.product_id)
 
@@ -276,7 +314,9 @@ class SalesService:
                     )
 
             # END WITH — SAVEPOINT COMMITTED
+            self.db.commit()
             self.db.refresh(sale)
+
             return sale
 
         except Exception as e:

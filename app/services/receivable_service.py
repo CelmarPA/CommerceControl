@@ -1,6 +1,6 @@
 # app/services/receivable_service.py
-from typing import List
 
+from typing import List
 from pygments.lexers import q
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
@@ -12,6 +12,7 @@ from app.models.customer import Customer
 from app.repositories.receivable_repository import ReceivableRepository
 from app.models.receivable_payment import ReceivablePayment
 from app.services.credit_history_service import CreditHistoryService
+from app.services.credit_engine import CreditEngine
 
 
 class ReceivableService:
@@ -19,7 +20,8 @@ class ReceivableService:
     def __init__(self, db: Session):
         self.db = db
         self.repo = ReceivableRepository(db)
-        self.credit_history = CreditHistoryService(db)
+        self.history = CreditHistoryService(db)
+        self.engine = CreditEngine(db)
 
     # ============================================================
     # GET
@@ -56,10 +58,11 @@ class ReceivableService:
                     amount=pay_amount,
                     user_id=user_id
                 )
+
                 self.repo.add_payment(payment)
 
                 # 2) Update AR
-                ar.paid_amount = Decimal(ar.paid_amount or 0) + pay_amount
+                ar.paid_amount = (Decimal(ar.paid_amount or 0) + pay_amount)
 
                 if ar.paid_amount >= ar.amount:
                     ar.status = "paid"
@@ -73,23 +76,36 @@ class ReceivableService:
                 # 3) Update customer credit_used
                 customer = self.db.query(Customer).filter(Customer.id == ar.customer_id).first()
 
-                if customer:
-                    customer.credit_used = max(
-                        Decimal(customer.credit_used or 0) - pay_amount,
-                        Decimal(0)
-                    )
-                    self.db.add(customer)
+                if not customer:
+                    raise HTTPException(status_code=404, detail="Customer not found")
 
-                    # 4) Register credit history
-                    self.credit_history.record(
-                        customer_id=customer.id,
-                        event_type="payment",
-                        amount=pay_amount,
-                        balance_after=customer.credit_used,
-                        notes=f"Payment for AR #{ar.id}"
-                    )
+                customer.credit_used = max(
+                    Decimal(customer.credit_used or 0) - pay_amount,
+                    Decimal(0)
+                )
+
+                self.db.add(customer)
+
+                # 4) Register credit history
+                self.history.record(
+                    customer_id=customer.id,
+                    event_type="payment",
+                    amount=pay_amount,
+                    balance_after=customer.credit_used,
+                    notes=f"Payment for AR #{ar.id}"
+                )
+
+                # 5) Recalculate SCORE
+                new_score = self.engine.recalculate_score(customer.id)
+                customer.credit_score = new_score
+
+                # 6) Update profile (BRONZE / SILVER / GOLD / DIAMOND)
+                customer.credit_profile = self.engine.assign_profile(new_score)
+
+                self.db.add(customer)
 
             self.db.commit()
+
             return payment
 
         except Exception as e:
