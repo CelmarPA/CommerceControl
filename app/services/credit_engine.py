@@ -16,6 +16,9 @@ class CreditEngine:
     def __init__(self, db: Session):
         self.db = db
 
+    # -----------------------------------------------------------
+    # LOAD POLICY
+    # -----------------------------------------------------------
     def load_policy_for_customer(self, customer: Customer) -> CreditPolicy:
         service = CreditPolicyService(self.db)
         profile = (customer.credit_profile or "BRONZE").upper()
@@ -26,31 +29,43 @@ class CreditEngine:
 
         return policy
 
+
+    # -----------------------------------------------------------
+    # OUTSTANDING (used + overdue + partial)
+    # -----------------------------------------------------------
     def outstanding_amount(self, customer_id: int) -> Decimal:
         # sum of open ARs (status != 'paid' and != 'cancelled'
         val = (
-            self.db.query(func.coalesce(func.sum(AccountReceivable.amount - AccountReceivable.paid_amount), 0))
+            self.db.query(
+                func.coalesce(func.sum(AccountReceivable.amount - AccountReceivable.paid_amount), 0)
+            )
             .filter(
                 AccountReceivable.customer_id == customer_id,
-                AccountReceivable.status.notin_(["paid", "canceled"])
+                AccountReceivable.status.in_(["open", "partial", "overdue"])
             )
             .scalar()
         )
 
         return Decimal(val or 0)
 
+    # -----------------------------------------------------------
+    # OVERDUE INFO
+    # -----------------------------------------------------------
     def overdue_info(self, customer_id: int) -> dict:
         # retorn (count_overdue, max_days_overdue)
         from datetime import datetime, timezone
 
         ars = (
             self.db.query(AccountReceivable)
-            .filter(AccountReceivable.customer_id == customer_id, AccountReceivable.status == "open")
+            .filter(
+                AccountReceivable.customer_id == customer_id,
+                AccountReceivable.status.in_(["open", "partial"])
+            )
             .all()
         )
 
         count_overdue = 0
-        max_days_overdue = 0,
+        max_days_overdue = 0
 
         for ar in ars:
             if ar.due_date:
@@ -65,6 +80,9 @@ class CreditEngine:
             "max_days_overdue": max_days_overdue
         }
 
+    # -----------------------------------------------------------
+    # VALIDATE SALE
+    # -----------------------------------------------------------
     def validate_sale(self, customer_id: int, sale_total: Decimal, installments: int | None = None) -> bool:
         """
         Raises HTTPException on validation failure.
@@ -79,7 +97,6 @@ class CreditEngine:
 
         if not policy.allow_credit:
             raise HTTPException(status_code=400, detail="Customer is not allowed to use credit")
-
 
         # 1) Max installments
         n = installments or 1
@@ -109,14 +126,15 @@ class CreditEngine:
             raise HTTPException(status_code=400, detail="Customer has overdue invoices exceeding allowed days")
 
         # 5) Additional custom checks (score)
-        if customer.credit_score is not None:
-            # Example: block if score < 400
-            if customer.credit_score < 300:
+        if customer.credit_score is not None and customer.credit_score < 300:
                 raise HTTPException(status_code=400, detail="Customer credit score too low")
 
         # Passed all checks
         return True
 
+    # -----------------------------------------------------------
+    # SCORE VIEW
+    # -----------------------------------------------------------
     def get_score(self, customer_id: int) -> dict:
         customer = self.db.query(Customer).filter(Customer.id == customer_id).first()
 
@@ -130,6 +148,9 @@ class CreditEngine:
             "profile": customer.credit_profile
         }
 
+    # -----------------------------------------------------------
+    # LIMIT VIEW
+    # -----------------------------------------------------------
     def get_limit(self, customer_id: int) -> dict:
         customer = self.db.query(Customer).filter(Customer.id == customer_id).first()
 
@@ -147,6 +168,9 @@ class CreditEngine:
             "available": available
         }
 
+    # -----------------------------------------------------------
+    # STATUS OVERVIEW
+    # -----------------------------------------------------------
     def check_customer_status(self, customer_id: int) -> dict:
         customer = self.db.query(Customer).filter(Customer.id == customer_id).first()
 
@@ -155,6 +179,7 @@ class CreditEngine:
 
         overdue = self.overdue_info(customer_id)
         outstanding = self.outstanding_amount(customer_id)
+
         total_limit = Decimal(customer.credit_limit or 0)
         available = total_limit - outstanding
 

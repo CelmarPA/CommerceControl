@@ -22,6 +22,7 @@ class SaleStatus(str, enum.Enum):
     PENDING = "pending"     # installment plan / payment plan
     PAID = "paid"
     CANCELED = "canceled"
+    PARTIAL = "partial"
 
 
 class Sale(Base):

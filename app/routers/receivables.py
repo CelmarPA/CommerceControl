@@ -22,7 +22,7 @@ def list_customer_accounts(customer_id: int, db: Session = Depends(get_db)) -> L
 @router.post("/{receivable_id}/pay", response_model=ReceivablePaymentRead, dependencies=[Depends(admin_required)])
 def pay_receivable(receivable_id: int, payload: ReceivablePaymentIn, db: Session = Depends(get_db), user_id: int | None = None):
     service = ReceivableService(db)
-    rp = service.pay_receivable(receivable_id,  payload, user_id)
+    rp = service.pay_receivable(receivable_id, payload, user_id)
 
     return rp
 

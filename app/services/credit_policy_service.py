@@ -1,7 +1,6 @@
 # app/services/credit_policy_service.py
 
 from sqlalchemy.orm import Session
-from typing import List
 from decimal import Decimal
 
 from app.models.credit_policy import CreditPolicy
@@ -39,7 +38,7 @@ class CreditPolicyService:
             allow_credit=payload.allow_credit,
             max_installments=payload.max_installments or 6,
             max_sale_amount=payload.max_sale_amount or None,
-            max_percentage=payload.max_percentage or Decimal(100),
+            max_percentage=payload.max_percentage_of_limit or Decimal(100),
             max_delay_days=payload.max_delay_days or 30,
             max_open_invoices=payload.max_open_invoices or 5,
         )

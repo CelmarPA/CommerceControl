@@ -4,6 +4,7 @@
 
 from .account_receivable import AccountReceivable
 from .category import Category
+from .credit_history import CreditHistory
 from .credit_policy import CreditPolicy
 from .customer import Customer
 from .login_attempt import LoginAttempt
@@ -33,6 +34,7 @@ from .user import User
 __all__ = [
     "AccountReceivable",
     "Category",
+    "CreditHistory",
     "CreditPolicy",
     "Customer",
     "LoginAttempt",

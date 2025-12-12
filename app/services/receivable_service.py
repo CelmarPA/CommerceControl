@@ -1,14 +1,17 @@
 # app/services/receivable_service.py
 from typing import List
 
+from pygments.lexers import q
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from decimal import Decimal
-from datetime import datetime
+from datetime import datetime, timezone
 
+from app.models import AccountReceivable, SaleStatus
 from app.models.customer import Customer
 from app.repositories.receivable_repository import ReceivableRepository
 from app.models.receivable_payment import ReceivablePayment
+from app.services.credit_history_service import CreditHistoryService
 
 
 class ReceivableService:
@@ -16,46 +19,111 @@ class ReceivableService:
     def __init__(self, db: Session):
         self.db = db
         self.repo = ReceivableRepository(db)
+        self.credit_history = CreditHistoryService(db)
 
-    def pay_receivable(self, receivable_id: int, amount: Decimal, user_id: int | None = None) -> ReceivablePayment:
-        receivable = self.repo.get(receivable_id)
+    # ============================================================
+    # GET
+    # ============================================================
+    def get(self, receivable_id: int) -> AccountReceivable:
+        ar = self.repo.get(receivable_id)
 
-        if not receivable:
+        if not ar:
             raise HTTPException(status_code=404, detail="Receivable not found")
 
-        if receivable.status == "paid":
+        return ar
+
+    # ============================================================
+    # PAYMENT
+    # ============================================================
+    def pay_receivable(self, receivable_id: int, amount: Decimal, user_id: int | None = None) -> ReceivablePayment:
+        ar = self.get(receivable_id)
+
+        if ar.status == "paid":
             raise HTTPException(status_code=400, detail="Receivable already paid")
 
-        remaining = Decimal(receivable.amount) - Decimal(receivable.paid_amount or 0)
-
         if amount <= 0:
-            raise HTTPException(status_code=400, detail= "Invalid payment amount")
+            raise HTTPException(status_code=400, detail="Invalid payment amount")
 
-        pay_amount = min(remaining, Decimal(amount))
+        remaining = Decimal(ar.amount) - Decimal(ar.paid_amount or 0)
+        pay_amount = min(remaining, amount)
 
-        rp = ReceivablePayment(
-            receivable_id=receivable_id,
-            amount=pay_amount,
-            user_id=user_id
-        )
+        try:
+            with self.db.begin_nested():  # SAVEPOINT
 
-        self.repo.add_payment(rp)
+                # 1) Create payment record
+                payment = ReceivablePayment(
+                    receivable_id=ar.id,
+                    amount=pay_amount,
+                    user_id=user_id
+                )
+                self.repo.add_payment(payment)
 
-        receivable.paid_amount = Decimal(receivable.paid_amount or 0) + pay_amount
+                # 2) Update AR
+                ar.paid_amount = Decimal(ar.paid_amount or 0) + pay_amount
 
-        if receivable.paid_amount >= receivable.amount:
-            receivable.status = "paid"
-            receivable.paid_at = datetime.now()
+                if ar.paid_amount >= ar.amount:
+                    ar.status = "paid"
+                    ar.paid_at = datetime.now(timezone.utc)
 
-        elif receivable.paid_amount > 0:
-            receivable.status = "partial"
+                else:
+                    ar.status = "partial"
 
-        self.repo.update(receivable)
+                self.repo.update(ar)
 
-        return rp
+                # 3) Update customer credit_used
+                customer = self.db.query(Customer).filter(Customer.id == ar.customer_id).first()
 
+                if customer:
+                    customer.credit_used = max(
+                        Decimal(customer.credit_used or 0) - pay_amount,
+                        Decimal(0)
+                    )
+                    self.db.add(customer)
+
+                    # 4) Register credit history
+                    self.credit_history.record(
+                        customer_id=customer.id,
+                        event_type="payment",
+                        amount=pay_amount,
+                        balance_after=customer.credit_used,
+                        notes=f"Payment for AR #{ar.id}"
+                    )
+
+            self.db.commit()
+            return payment
+
+        except Exception as e:
+            self.db.rollback()
+            raise HTTPException(status_code=500, detail=f"Failed to register payment: {str(e)}")
+
+    # ============================================================
+    # LISTS
+    # ============================================================
     def list_customer(self, customer_id: int) -> List[Customer]:
         return self.repo.list_by_customer(customer_id)
 
     def list_overdue(self):
         return self.repo.list_overdue()
+
+    # ============================================================
+    # AUTO MARK OVERDUE
+    # ============================================================
+    def refresh_overdue(self) -> int:
+        """Marks invoices as overdue if past due date. Returns count."""
+
+        today = datetime.now(timezone.utc)
+        count = 0
+
+        ars = self.db.query(AccountReceivable).filter(
+            AccountReceivable.status == "open",
+        ).all()
+
+        for ar in ars:
+            if ar.due_date and ar.due_date < today:
+                ar.status = "overdue"
+                self.db.add(ar)
+                count += 1
+
+        self.db.commit()
+
+        return count

@@ -21,4 +21,3 @@ class CreditPolicy(Base):
 
     max_delay_days = Column(Integer, default=30)
     max_open_invoices = Column(Integer, default=5)
-

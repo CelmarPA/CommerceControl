@@ -28,6 +28,16 @@ class ReceivableRepository:
     def list_overdue(self):
         return self.db.query(AccountReceivable).filter(AccountReceivable.status == 'overdue').all()
 
+    def list_open(self, customer_id: int):
+        return (
+            self.db.query(AccountReceivable)
+            .filter(
+                AccountReceivable.customer_id == customer_id,
+                AccountReceivable.status.in_(["open", "partial"])
+            )
+            .all()
+        )
+
     def add_payment(self, receivable_payment: ReceivablePayment) -> ReceivablePayment:
         self.db.add(receivable_payment)
         self.db.flush()
