@@ -7,10 +7,11 @@ from fastapi import HTTPException
 from decimal import Decimal
 from datetime import datetime, timezone
 
-from app.models import AccountReceivable, SaleStatus
+from app.models import AccountReceivable
 from app.models.customer import Customer
 from app.repositories.receivable_repository import ReceivableRepository
 from app.models.receivable_payment import ReceivablePayment
+from app.services.credit_events import CreditEvents
 from app.services.credit_history_service import CreditHistoryService
 from app.services.credit_engine import CreditEngine
 
@@ -22,6 +23,7 @@ class ReceivableService:
         self.repo = ReceivableRepository(db)
         self.history = CreditHistoryService(db)
         self.engine = CreditEngine(db)
+        self.credit_events = CreditEvents(db)
 
     # ============================================================
     # GET
@@ -52,7 +54,9 @@ class ReceivableService:
         try:
             with self.db.begin_nested():  # SAVEPOINT
 
+                # ------------------------------------------------
                 # 1) Create payment record
+                # ------------------------------------------------
                 payment = ReceivablePayment(
                     receivable_id=ar.id,
                     amount=pay_amount,
@@ -61,19 +65,21 @@ class ReceivableService:
 
                 self.repo.add_payment(payment)
 
-                # 2) Update AR
+                # ------------------------------------------------
+                # 2) Update receivable
+                # ------------------------------------------------
                 ar.paid_amount = (Decimal(ar.paid_amount or 0) + pay_amount)
 
-                if ar.paid_amount >= ar.amount:
-                    ar.status = "paid"
-                    ar.paid_at = datetime.now(timezone.utc)
+                ar.status = "paid" if ar.paid_amount >= ar.amount else "partial"
 
-                else:
-                    ar.status = "partial"
+                if ar.status == "paid":
+                    ar.paid_at = datetime.now(timezone.utc)
 
                 self.repo.update(ar)
 
+                # ------------------------------------------------
                 # 3) Update customer credit_used
+                # ------------------------------------------------
                 customer = self.db.query(Customer).filter(Customer.id == ar.customer_id).first()
 
                 if not customer:
@@ -86,7 +92,9 @@ class ReceivableService:
 
                 self.db.add(customer)
 
-                # 4) Register credit history
+                # ------------------------------------------------
+                # 4) Register credit history (payment)
+                # ------------------------------------------------
                 self.history.record(
                     customer_id=customer.id,
                     event_type="payment",
@@ -95,16 +103,10 @@ class ReceivableService:
                     notes=f"Payment for AR #{ar.id}"
                 )
 
-                # 5) Recalculate SCORE
-                new_score = self.engine.recalculate_score(customer.id)
-                customer.credit_score = new_score
-
-                # 6) Update profile (BRONZE / SILVER / GOLD / DIAMOND)
-                customer.credit_profile = self.engine.assign_profile(new_score)
-
-                self.db.add(customer)
-
-            self.db.commit()
+                # ------------------------------------------------
+                # 5) Recalculate score + profile (single source)
+                # -----------------------------------------------
+                self.credit_events.on_payment(customer.id)
 
             return payment
 

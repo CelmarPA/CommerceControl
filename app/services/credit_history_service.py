@@ -1,6 +1,7 @@
 # app/services/credit_history_service.py
 
 from sqlalchemy.orm import Session
+from datetime import datetime
 from decimal import Decimal
 from typing import List
 
@@ -28,5 +29,17 @@ class CreditHistoryService:
 
         return self.repo.create(history)
 
-    def list_for_customer(self, customer_id: int) -> List[CreditHistory]:
-        return self.repo.list_for_customer(customer_id)
+    def get_history(
+            self,
+            customer_id: int,
+            event_type: str | None = None,
+            start: datetime | None = None,
+            end: datetime | None = None,
+    ) -> List[CreditHistory]:
+
+        return self.repo.list_by_customer(
+            customer_id=customer_id,
+            event_type=event_type,
+            start=start,
+            end=end
+        )

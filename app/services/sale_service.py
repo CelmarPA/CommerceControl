@@ -28,6 +28,7 @@ class SalesService:
         self.receivable_repo = ReceivableRepository(db)
         self.stock_repo = StockRepository(db)
         self.product_repo = ProductRepository(db)
+        self.engine = CreditEngine(db)
 
     # ============================================================
     # CREATE SALE
@@ -255,6 +256,8 @@ class SalesService:
                             status=SaleStatus.OPEN
                         )
                         self.db.add(ar)
+
+                    self.engine.recalc_and_apply(customer.id)
 
                     # --------------------------
                     # Update Sale status

@@ -192,3 +192,5 @@ def admin_dashboard() -> dict:
     """
 
     return {"message": "Admin dashboard"}
+
+

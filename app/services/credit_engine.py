@@ -6,6 +6,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta
 
+from app.models.credit_alert import CreditAlert
 from app.models.customer import Customer
 from app.models.credit_policy import CreditPolicy
 from app.models.account_receivable import AccountReceivable
@@ -18,11 +19,10 @@ class CreditEngine:
 
     def __init__(self, db: Session):
         self.db = db
-        self.Customer = Customer
 
-    # -----------------------------------------------------------
+    # ============================================================
     # LOAD POLICY
-    # -----------------------------------------------------------
+    # ============================================================
     def load_policy_for_customer(self, customer: Customer) -> CreditPolicy:
         service = CreditPolicyService(self.db)
         profile = (customer.credit_profile or "BRONZE").upper()
@@ -34,10 +34,9 @@ class CreditEngine:
 
         return policy
 
-
-    # -----------------------------------------------------------
+    # ============================================================
     # OUTSTANDING (used + overdue + partial)
-    # -----------------------------------------------------------
+    # ============================================================
     def outstanding_amount(self, customer_id: int) -> Decimal:
         # sum of open ARs (status != 'paid' and != 'cancelled'
         val = (
@@ -56,9 +55,9 @@ class CreditEngine:
 
         return Decimal(val or 0)
 
-    # -----------------------------------------------------------
+    # ============================================================
     # OVERDUE INFO
-    # -----------------------------------------------------------
+    # ============================================================
     def overdue_info(self, customer_id: int) -> dict:
         # retorn (count_overdue, max_days_overdue)
         from datetime import datetime, timezone
@@ -83,20 +82,21 @@ class CreditEngine:
             "max_days_overdue": max_days
         }
 
-    # -----------------------------------------------------------
+    # ============================================================
     # VALIDATE SALE — FULL RISK ENGINE
-    # -----------------------------------------------------------
+    # ============================================================
     def validate_sale(self, customer_id: int, sale_total: Decimal, installments: int | None = None) -> bool:
         """
         Raises HTTPException on validation failure.
         """
 
-        self.refresh_overdue(customer_id)
-
         customer = self.db.query(Customer).filter(Customer.id == customer_id).first()
 
         if not customer:
             raise HTTPException(status_code=404, detail="Customer not found")
+
+        if self.is_credit_blocked(customer.id):
+            raise HTTPException(status_code=400, detail="Customer credit temporarily blocked")
 
         policy = self.load_policy_for_customer(customer)
 
@@ -147,12 +147,17 @@ class CreditEngine:
             AccountReceivable.status == "open"
         ).all()
 
+        changed = False
+
         for ar in ars:
             if ar.due_date and ar.due_date < now:
                 ar.status = "overdue"
                 self.db.add(ar)
+                changed = True
 
-        self.db.commit()
+        if changed:
+            self.db.commit()
+            self.recalc_and_apply(customer_id)
 
     # ============================================================
     # SCORE RE-CALCULATION (PROFESSIONAL MODEL)
@@ -242,9 +247,9 @@ class CreditEngine:
 
         return "BRONZE"
 
-    # -----------------------------------------------------------
+    # ============================================================
     # UPDATE PROFILE AND SCORE
-    # -----------------------------------------------------------
+    # ============================================================
     def update_customer_profile(self, customer_id: int) -> dict:
         customer = self.db.query(Customer).filter(Customer.id == customer_id).first()
 
@@ -266,9 +271,9 @@ class CreditEngine:
             "new_profile": new_profile
         }
 
-    # -----------------------------------------------------------
+    # ============================================================
     # SCORE VIEW
-    # -----------------------------------------------------------
+    # ============================================================
     def get_score(self, customer_id: int) -> dict:
         customer = self.db.query(Customer).filter(Customer.id == customer_id).first()
 
@@ -282,9 +287,9 @@ class CreditEngine:
             "profile": customer.credit_profile
         }
 
-    # -----------------------------------------------------------
+    # ============================================================
     # LIMIT VIEW
-    # -----------------------------------------------------------
+    # ============================================================
     def get_limit(self, customer_id: int) -> dict:
         customer = self.db.query(Customer).filter(Customer.id == customer_id).first()
 
@@ -302,9 +307,9 @@ class CreditEngine:
             "available": available
         }
 
-    # -----------------------------------------------------------
+    # ============================================================
     # STATUS OVERVIEW
-    # -----------------------------------------------------------
+    # ============================================================
     def check_customer_status(self, customer_id: int) -> dict:
         customer = self.db.query(Customer).filter(Customer.id == customer_id).first()
 
@@ -482,3 +487,107 @@ class CreditEngine:
             "top_risk_customers": top_risk[:10],
             "top_safe_customers": top_safe[:10],
         }
+
+    # ============================================================
+    # APPLY SCORE + PROFILE + HISTORY
+    # ============================================================
+    def recalc_and_apply(self, customer_id: int) -> dict:
+        score = self.recalculate_score(customer_id)
+        profile = self.assign_profile(score)
+
+        customer = self.db.query(Customer).filter(Customer.id == customer_id).first()
+
+        if not customer:
+            raise HTTPException(status_code=404, detail="Customer not found")
+
+        if self.is_credit_blocked(customer.id):
+            self.emit_alert(
+                customer_id=customer.id,
+                type_alert="credit_block",
+                message="Customer credit blocked automatically due to risk"
+
+            )
+
+        old_score = customer.credit_score
+        old_profile = customer.credit_profile
+
+        customer.credit_score = score
+        customer.credit_profile = profile
+
+        self.db.add(customer)
+
+        # History
+        self.db.add(CreditHistory(
+            customer_id=customer.id,
+            event_type="score_recalc",
+            amount=0,
+            balance_after=customer.credit_used or 0,
+            notes=f"Score {old_score} → {score}, Profile {old_profile} → {profile}"
+        ))
+
+        self.db.commit()
+
+        return {
+            "customer_id": customer.id,
+            "score": score,
+            "profile": profile
+        }
+
+    # ============================================================
+    # RECALCULATE ALL CUSTOMERS (ADMIN / CRON)
+    # ============================================================
+    def recalc_all_customers(self) -> dict:
+        customers = self.db.query(Customer).all()
+
+        updated = 0
+        errors= []
+
+        for customer in customers:
+            try:
+                self.recalc_and_apply(customer.id)
+                updated += 1
+
+            except Exception as e:
+                errors.append({
+                    "customer_id": customer.id,
+                    "error": str(e)
+                })
+
+        return {
+            "total_customers": len(customers),
+            "updated": updated,
+            "errors": errors
+        }
+
+    # ============================================================
+    # CREDIT BLOCK DECISION
+    # ============================================================
+    def is_credit_blocked(self, customer_id: int) -> bool:
+        customer = self.db.query(Customer).filter(Customer.id == customer_id).first()
+
+        if not customer:
+            raise HTTPException(status_code=404, detail="Customer not found")
+
+        overdue = self.overdue_info(customer.id)
+        outstanding = self.outstanding_amount(customer.id)
+
+        if customer.credit_score is not None and customer.credit_score < 300:
+            return True
+
+        if overdue["max_days_overdue"] > 60:
+            return True
+
+        if customer.credit_limit and outstanding > customer.credit_limit:
+            return True
+
+        return False
+
+    # ============================================================
+    # EMIT ALERT
+    # ============================================================
+    def emit_alert(self, customer_id: int, type_alert: str, message: str) -> dict:
+        self.db.add(CreditAlert(
+            customer_id=customer_id,
+            type_alert=type_alert,
+            message=message
+        ))

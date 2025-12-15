@@ -1,5 +1,5 @@
 # app/routers/credit.py
-
+from datetime import datetime
 from decimal import Decimal
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -13,6 +13,7 @@ from app.services.credit_engine import CreditEngine
 from app.schemas.credit_schema import CreditSaleValidation
 from app.schemas.credit_analytics_schema import CreditAnalytics
 from app.services.credit_history_service import CreditHistoryService
+from app.models.customer import Customer
 
 
 router = APIRouter(prefix="/credit", tags=["Credit"])
@@ -91,7 +92,7 @@ def recalc_score(customer_id: int, db: Session = Depends(get_db)) -> Dict:
         profile = credit_engine.assign_profile(score)
 
         # Save customer
-        customer = db.query(credit_engine.Customer).filter(credit_engine.Customer.id == customer_id).first()
+        customer = db.query(Customer).filter(Customer.id == customer_id).first()
 
         if not customer:
             raise HTTPException(status_code=404, detail="Customer not found")
@@ -117,7 +118,6 @@ def recalc_score(customer_id: int, db: Session = Depends(get_db)) -> Dict:
 # ============================================================
 @router.post("/apply-profile/{customer_id}/{profile}", response_model=Dict, dependencies=[Depends(admin_required)])
 def apply_profile(customer_id: int, profile: str, db: Session = Depends(get_db)) -> Dict:
-    credit_engine = get_credit_engine(db)
     profile = profile.upper()
 
     # -------------------------------
@@ -131,7 +131,7 @@ def apply_profile(customer_id: int, profile: str, db: Session = Depends(get_db))
     # -------------------------------
     # 2) Fetch customer
     # -------------------------------
-    customer = db.query(credit_engine.Customer).filter(credit_engine.Customer.id == customer_id).first()
+    customer = db.query(Customer).filter(Customer.id == customer_id).first()
 
     if not customer:
         raise HTTPException(status_code=404, detail="Customer not found")
@@ -171,62 +171,11 @@ def apply_profile(customer_id: int, profile: str, db: Session = Depends(get_db))
 # ============================================================
 # RECALCULATE ALL CUSTOMERS SCORE AND PROFILES
 # ============================================================
-@router.post("recalculate-all", response_model=Dict, dependencies=[Depends(admin_required)])
+@router.post("/recalculate-all", response_model=Dict, dependencies=[Depends(admin_required)])
 def recalc_all_customers(db: Session = Depends(get_db)) -> Dict:
-    credit_engine = get_credit_engine(db)
+    credit_engine = CreditEngine(db)
 
-    from app.models.customer import Customer
-    from app.services.credit_history_service import CreditHistoryService
-
-    history = CreditHistoryService(db)
-
-    customers = db.query(Customer).all()
-
-    updated = []
-
-    try:
-        for customer in customers:
-            old_score = customer.credit_score or 0
-            old_profile = customer.credit_profile or "NONE"
-
-            # Recalculate score
-            new_score = credit_engine.recalculate_score(customer.id)
-            new_profile = credit_engine.assign_profile(new_score)
-
-            # Update fields
-            customer.credit_score = new_score
-            customer.credit_profile = new_profile
-
-            db.add(customer)
-
-            # Register history
-            history.record(
-                customer_id=customer.id,
-                event_type="auto_recalculate",
-                amount=0,
-                balance_after=customer.credit_used or 0,
-                notes=f"Score {old_score} → {new_score}, Profile {old_profile} → {new_profile}"
-            )
-
-            updated.append({
-                "customer_id": customer.id,
-                "old_score": old_score,
-                "new_score": new_score,
-                "old_profile": old_profile,
-                "new_profile": new_profile
-            })
-
-            db.commit()
-
-            return {
-                "detail": f"Recalculated score for {len(updated)} customers",
-                "updated": updated
-            }
-
-    except Exception as e:
-        db.rollback()
-
-        raise HTTPException(status_code=500, detail=str(e))
+    return credit_engine.recalc_all_customers()
 
 
 # ============================================================
@@ -256,76 +205,34 @@ def simulate_sale(payload: CreditSaleValidation, db: Session = Depends(get_db)) 
 
 
 # ============================================================
-# SIMULATE SALE
+# RISK REPORT
 # ============================================================
-@router.get("/risk-report", response_model=Dict, dependencies=[Depends(admin_required)])
-def risk_report(db: Session = Depends(get_db)) -> Dict:
+@router.get("/risk-report", response_model=RiskReport, dependencies=[Depends(admin_required)])
+def risk_report(db: Session = Depends(get_db)) -> RiskReport:
     credit_engine = get_credit_engine(db)
 
-    from app.models.customer import Customer
-
-    customers = db.query(Customer).all()
-
-    overdue_list = []
-    low_score = []
-    high_usage = []
-    blocked = []
-
-    for customer in customers:
-        outstanding = credit_engine.outstanding_amount(customer.id)
-        overdue = credit_engine.overdue_info(customer.id)
-
-        limit = customer.credit_limit or 0
-        usage_pct = float(outstanding / limit * 100) if limit > 0 else 0
-
-        # Overdue
-        if overdue["count_overdue"] > 0:
-            overdue_list.append({
-                "customer_id": customer.id,
-                "name": customer.name,
-                "overdue": overdue
-            })
-
-        # Score
-        if (customer.credit_score or 0) < 300:
-            low_score.append({
-                "customer_id": customer.id,
-                "name": customer.name,
-                "score": customer.credit_score
-            })
-
-        # High limit usage
-        if usage_pct > 70:
-            high_usage.append({
-                "customer_id": customer.id,
-                "name": customer.name,
-                "usage": usage_pct
-            })
-
-        # Blocked by policy or manual
-        if not customer.allow_credit:
-            blocked.append({
-                "customer_id": customer.id,
-                "name": customer.name
-            })
-
-    return {
-        "total_customers": len(customers),
-        "overdue_customers": overdue_list,
-        "low_score_customers": low_score,
-        "high_usage_customers": high_usage,
-        "blocked_customers": blocked
-    }
+    return credit_engine.risk_report()
 
 
 # ============================================================
 # CUSTOMER HISTORY
 # ============================================================
 @router.get("/history/{customer_id}", response_model=List[CreditHistoryRead], dependencies=[Depends(admin_required)])
-def get_credit_history(customer_id: int, db: Session = Depends(get_db)) -> List[CreditHistoryRead]:
+def get_credit_history(
+        customer_id: int,
+        event_type: str | None = None,
+        start: datetime | None = None,
+        end: datetime | None = None,
+        db: Session = Depends(get_db)
+) -> List[CreditHistoryRead]:
     history_service = CreditHistoryService(db)
 
-    return history_service.list_for_customer(customer_id)
+    return history_service.get_history(
+        customer_id=customer_id,
+        event_type=event_type,
+        start=start,
+        end=end
+    )
 
 
 # ============================================================
@@ -378,13 +285,3 @@ def analytics(customer_id: int, db: Session = Depends(get_db)) -> CreditAnalytic
     credit_engine = get_credit_engine(db)
 
     return credit_engine.analytics(customer_id)
-
-
-# ============================================================
-# RISK REPORT
-# ============================================================
-@router.get("/risk-report", response_model=RiskReport, dependencies=[Depends(admin_required)])
-def risk_report(db: Session = Depends(get_db)) -> RiskReport:
-    credit_engine = get_credit_engine(db)
-
-    return credit_engine.risk_report()
