@@ -2,6 +2,7 @@
 
 from decimal import Decimal
 from fastapi import HTTPException
+from pygments.lexers import q
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone, timedelta
@@ -501,11 +502,18 @@ class CreditEngine:
             raise HTTPException(status_code=404, detail="Customer not found")
 
         if self.is_credit_blocked(customer.id):
-            self.emit_alert(
+            self.generate_alert(
                 customer_id=customer.id,
-                type_alert="credit_block",
+                alert_type="credit_block",
                 message="Customer credit blocked automatically due to risk"
 
+            )
+
+        if score < 400:
+            self.generate_alert(
+                customer_id=customer.id,
+                alert_type="credit_ris",
+                message=f"High credit risk detected (score={score})"
             )
 
         old_score = customer.credit_score
@@ -583,11 +591,11 @@ class CreditEngine:
         return False
 
     # ============================================================
-    # EMIT ALERT
+    # GENERATE ALERT
     # ============================================================
-    def emit_alert(self, customer_id: int, type_alert: str, message: str) -> dict:
+    def generate_alert(self, customer_id: int, alert_type: str, message: str) -> dict:
         self.db.add(CreditAlert(
             customer_id=customer_id,
-            type_alert=type_alert,
+            alert_type=alert_type,
             message=message
         ))

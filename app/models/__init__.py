@@ -3,7 +3,11 @@
 # Do not edit manually.
 
 from .account_receivable import AccountReceivable
+from .cash_movement import CashMovement
+from .cash_register import CashRegister
+from .cash_session import CashSession
 from .category import Category
+from .credit_alert import CreditAlert
 from .credit_history import CreditHistory
 from .credit_policy import CreditPolicy
 from .customer import Customer
@@ -33,7 +37,11 @@ from .user import User
 
 __all__ = [
     "AccountReceivable",
+    "CashMovement",
+    "CashRegister",
+    "CashSession",
     "Category",
+    "CreditAlert",
     "CreditHistory",
     "CreditPolicy",
     "Customer",

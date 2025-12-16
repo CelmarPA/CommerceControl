@@ -7,7 +7,8 @@ from app.services.credit_engine import CreditEngine
 
 class CreditEvents:
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session) -> None:
+        self.db = db
         self.engine = CreditEngine(db)
 
     def on_payment(self, customer_id: int) -> dict:

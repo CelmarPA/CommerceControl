@@ -35,7 +35,7 @@ from app.routers import (
     sales_orders,
     receipts,
     credit,
-    credit_policy
+    credit_policy, cash_session
 )
 
 from app.core.exception_handlers import (
@@ -105,6 +105,7 @@ app.include_router(sales_orders.router)
 app.include_router(receipts.router)
 app.include_router(credit.router)
 app.include_router(credit_policy.router)
+app.include_router(cash_session.router)
 
 # ----------------------------------------------------------------------
 # Root Route
