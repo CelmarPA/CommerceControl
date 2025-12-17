@@ -35,7 +35,12 @@ from app.routers import (
     sales_orders,
     receipts,
     credit,
-    credit_policy, cash_session
+    credit_policy,
+    cash_session,
+    cash_daily_report,
+    cash_reports,
+    dashboard,
+    payables
 )
 
 from app.core.exception_handlers import (
@@ -106,6 +111,10 @@ app.include_router(receipts.router)
 app.include_router(credit.router)
 app.include_router(credit_policy.router)
 app.include_router(cash_session.router)
+app.include_router(cash_daily_report.router)
+app.include_router(cash_reports.router)
+app.include_router(dashboard.router)
+app.include_router(payables.router)
 
 # ----------------------------------------------------------------------
 # Root Route

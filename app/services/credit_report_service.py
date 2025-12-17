@@ -1,11 +1,12 @@
 # app/services/credit_report_service.py
 from typing import List
 
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from decimal import Decimal
-from datetime import datetime, timezone
+from fastapi import HTTPException
 
-from app.models import Customer, AccountReceivable
+from app.models import Customer, AccountReceivable, CashSession, CashMovement
 
 
 class CreditReportService:
@@ -14,7 +15,6 @@ class CreditReportService:
         self.db = db
 
     def overdue(self, days_overdue:int = 0) -> List[Customer]:
-        from sqlalchemy import func
 
         q = (
             self.db.query(Customer)
@@ -26,7 +26,6 @@ class CreditReportService:
         return q
 
     def limit_exceeded(self) -> List[Customer]:
-        from sqlalchemy import func
 
         customers = (self.db.query(Customer)
                      .filter((Customer.credit_used or 0) > (Customer.credit_limit or 0))
@@ -37,7 +36,6 @@ class CreditReportService:
 
     def top_risk(self, limit: int = 20):
         # simple risk score: overdue count + credit_used/limit + low score
-        from sqlalchemy import func
 
         res = []
         customers = self.db.query(Customer).all()
@@ -51,8 +49,6 @@ class CreditReportService:
                              )
                              .count()
             )
-
-            ratio = 0
 
             if customer.credit_limit and customer.credit_limit > 0:
                 ratio = float((customer.credit_used or 0) / customer.credit_limit)
@@ -71,3 +67,69 @@ class CreditReportService:
         res.sort(key=lambda x: (x["overdue_count"], -x["usage_ratio"], x["credit_score"]), reverse=True)
 
         return res[:limit]
+
+    # ============================================================
+    # CASH SESSION REPORT
+    # ============================================================
+    def session_report(self, session_id: int) -> dict:
+
+        session = self.db.query(CashSession).filter(
+            CashSession.id == session_id
+        ).first()
+
+        if not session:
+            raise HTTPException(status_code=404, detail="Session not found")
+
+        # --------------------------------------------------------
+        # Aggregated movements
+        # --------------------------------------------------------
+        totals = (
+            self.db.query(
+                CashMovement.movement_type,
+                func.coalesce(func.sum(CashMovement.amount), 0)
+            )
+            .filter(CashMovement.cash_session_id == session_id)
+            .group_by(CashMovement.movement_type)
+            .all()
+        )
+
+        data = {t[0]: Decimal(t[1]) for t in totals}
+
+        total_sales = data.get("sale", Decimal(0))
+        total_supplies = data.get("supply", Decimal(0))
+        total_withdrawals = data.get("withdrawal", Decimal(0))
+        total_refunds = data.get("refund", Decimal(0))
+        total_adjustments = data.get("adjustment", Decimal(0))
+
+        expected_closing = (
+            Decimal(session.opening_balance)
+            + total_sales
+            + total_supplies
+            - total_withdrawals
+            - total_refunds
+            + total_adjustments
+        )
+
+        closing_balance = Decimal(session.closing_balance  or 0)
+        difference = closing_balance - expected_closing
+
+        return {
+            "session_id": session.id,
+            "cash_register_id": session.cash_register_id,
+            "user_id": session.user_id,
+            "opened_at": session.opened_at,
+            "closed_at": session.closed_at,
+            "status": session.status,
+
+            "opening_balance": session.opening_balance,
+
+            "total_sales": total_sales,
+            "total_supplies": total_supplies,
+            "total_withdrawals": total_withdrawals,
+            "total_refunds": total_refunds,
+            "total_adjustments": total_adjustments,
+
+            "expected_closing": expected_closing,
+            "closing_balance": closing_balance,
+            "difference": difference
+        }
