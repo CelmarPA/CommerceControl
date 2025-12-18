@@ -23,4 +23,4 @@ def create_payable(data: PayableCreate, db: Session = Depends(get_db)):
 def pay_payable(payable_id: int, amount: Decimal, db: Session = Depends(get_db), user_id: int | None = None) -> PayablePaymentRead:
     service = PayableService(db)
 
-    return service.pay(payable_id, amount, user_id)
+    return service.pay_payable(payable_id, amount, user_id)

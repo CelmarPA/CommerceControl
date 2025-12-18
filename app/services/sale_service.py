@@ -18,6 +18,7 @@ from app.schemas.sale_schema import SaleCreate, SaleItemIn
 from app.schemas.payment_schema import PaymentIn
 
 from app.services.credit_engine import CreditEngine
+from app.services.cash_flow_service import CashFlowService
 
 
 class SalesService:
@@ -29,6 +30,7 @@ class SalesService:
         self.stock_repo = StockRepository(db)
         self.product_repo = ProductRepository(db)
         self.engine = CreditEngine(db)
+        self.cash_flow_service = CashFlowService(db)
 
     # ============================================================
     # CREATE SALE
@@ -319,6 +321,16 @@ class SalesService:
             # END WITH — SAVEPOINT COMMITTED
             self.db.commit()
             self.db.refresh(sale)
+
+            if payment_mode in ("cash", "card", "pix", "debit"):
+                self.cash_flow_service.register(
+                    flow_type="IN",
+                    category="sale",
+                    amount=total_due,
+                    reference_type="sale",
+                    reference_id=sale.id,
+                    description=f"Sale #{sale.id}"
+                )
 
             return sale
 

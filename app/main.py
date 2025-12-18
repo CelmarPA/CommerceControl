@@ -40,7 +40,8 @@ from app.routers import (
     cash_daily_report,
     cash_reports,
     dashboard,
-    payables
+    payables,
+    cash_flow_reports
 )
 
 from app.core.exception_handlers import (
@@ -115,6 +116,7 @@ app.include_router(cash_daily_report.router)
 app.include_router(cash_reports.router)
 app.include_router(dashboard.router)
 app.include_router(payables.router)
+app.include_router(cash_flow_reports.router)
 
 # ----------------------------------------------------------------------
 # Root Route

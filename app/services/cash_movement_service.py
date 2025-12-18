@@ -6,12 +6,14 @@ from decimal import Decimal
 
 from app.models.cash_movement import CashMovement
 from app.models.cash_session import CashSession
+from app.services.cash_flow_service import CashFlowService
 
 
 class CashMovementService:
 
     def __init__(self, db: Session):
         self.db = db
+        self.cash_flow_service = CashFlowService(db)
 
     def create(
             self,
@@ -34,7 +36,7 @@ class CashMovementService:
         if amount <= 0:
             raise HTTPException(status_code=400, detail="Invalid amount")
 
-        if movement_type in ("withdraw", "refund", "adjustment") and not reason:
+        if movement_type in ("withdrawal", "refund", "adjustment") and not reason:
             raise HTTPException(status_code=400, detail="Reason is required for this movement")
 
         movement = CashMovement(
@@ -45,6 +47,46 @@ class CashMovementService:
             reason=reason,
             reference_id=reference_id
         )
+
+        if movement_type == "withdrawal":
+            self.cash_flow_service.register(
+                flow_type="OUT",
+                category="cash_withdrawal",
+                amount=amount,
+                reference_type="cash_movement",
+                reference_id=movement.id,
+                description=reason
+            )
+
+        if movement_type == "supply":
+            self.cash_flow_service.register(
+                flow_type="IN",
+                category="cash_supply",
+                amount=amount,
+                reference_type="cash_movement",
+                reference_id=movement.id,
+                description=reason
+            )
+
+        if movement_type == "refund":
+            self.cash_flow_service.register(
+                flow_type="OUT",
+                category="refund",
+                amount=amount,
+                reference_type="cash_movement",
+                reference_id=movement.id,
+                description=reason
+            )
+
+        if movement_type == "refund":
+            self.cash_flow_service.register(
+                flow_type="IN",
+                category="adjustment",
+                amount=amount,
+                reference_type="cash_movement",
+                reference_id=movement.id,
+                description=reason
+            )
 
         self.db.add(movement)
         self.db.flush()

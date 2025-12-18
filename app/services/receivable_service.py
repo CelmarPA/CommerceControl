@@ -14,6 +14,7 @@ from app.models.receivable_payment import ReceivablePayment
 from app.services.credit_events import CreditEvents
 from app.services.credit_history_service import CreditHistoryService
 from app.services.credit_engine import CreditEngine
+from app.services.cash_flow_service import CashFlowService
 
 
 class ReceivableService:
@@ -24,6 +25,7 @@ class ReceivableService:
         self.history = CreditHistoryService(db)
         self.engine = CreditEngine(db)
         self.credit_events = CreditEvents(db)
+        self.cash_flow_service = CashFlowService(db)
 
     # ============================================================
     # GET
@@ -107,6 +109,15 @@ class ReceivableService:
                 # 5) Recalculate score + profile (single source)
                 # -----------------------------------------------
                 self.credit_events.on_payment(customer.id)
+
+                self.cash_flow_service.register(
+                    flow_type="IN",
+                    category="receivable_payment",
+                    amount=pay_amount,
+                    reference_type="receivable",
+                    reference_id=ar.id,
+                    description=f"Payment for AR # {ar.id}"
+                )
 
             return payment
 
