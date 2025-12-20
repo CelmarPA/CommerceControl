@@ -1,6 +1,6 @@
 # app/models/cash_session.py
 
-from sqlalchemy import Column, Integer, DateTime, Numeric, ForeignKey, String, func
+from sqlalchemy import Column, Integer, DateTime, Numeric, ForeignKey, String, func, Boolean
 
 from app.database import Base
 
@@ -16,6 +16,10 @@ class CashSession(Base):
 
     opened_at = Column(DateTime(timezone=True), server_default=func.now())
     closed_at = Column(DateTime(timezone=True), nullable=True)
+
+    expected_balance = Column(Numeric(12, 2), nullable=True)
+    difference = Column(Numeric(12, 2), nullable=True)
+    is_consistent = Column(Boolean, default=True)
 
     opening_balance = Column(Numeric(12, 2), nullable=False)
     closing_balance = Column(Numeric(12, 2), nullable=True)

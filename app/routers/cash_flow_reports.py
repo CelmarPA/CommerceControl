@@ -6,6 +6,8 @@ from datetime import date
 from typing import List
 
 from app.database import get_db
+from app.schemas.cash_flow_projection_schema import CashFlowProjectionRead
+from app.services.cash_flow_projection_service import CashFlowProjectionService
 from app.services.cash_flow_report_service import CashFlowReportService
 from app.schemas.cash_flow_report_schema import (
     CashFlowDailyRead,
@@ -67,3 +69,13 @@ def cash_flow_by_category(db: Session = Depends(get_db)) -> List[CashFlowByCateg
     service = CashFlowReportService(db)
 
     return service.by_category()
+
+
+# =====================================================
+# CASH FLOW PROJECTION
+# =====================================================
+@router.get("/projection", response_model=List[CashFlowProjectionRead], dependencies=[Depends(admin_required)])
+def cash_flow_projection(start: date, end: date, db: Session = Depends(get_db)):
+    service = CashFlowProjectionService(db)
+
+    return service.project(start, end)

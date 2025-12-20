@@ -1,11 +1,13 @@
 # app/services/cash_flow_report_service.py
 
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func, extract
 from datetime import date
 from decimal import Decimal
 from typing import List
 
+from app.models import CashSession
 from app.models.cash_flow import CashFlow
 from app.schemas.cash_flow_report_schema import (
     CashFlowSummaryRead,
@@ -13,6 +15,7 @@ from app.schemas.cash_flow_report_schema import (
     CashFlowDailyRead,
     CashFlowMonthlyRead
 )
+from app.schemas.cash_flow_schema import CashFlowClosingRead
 
 
 class CashFlowReportService:
@@ -183,3 +186,80 @@ class CashFlowReportService:
             )
 
         return result
+
+    # =====================================================
+    # CLOSING FLOW (AUDITED)
+    # =====================================================
+    def closing_flow(self, session_id: int, start: date, end: date) -> CashFlowClosingRead:
+
+        # --------------------------------------------------------
+        # 1️⃣ Load cash session
+        # --------------------------------------------------------
+        session = (
+            self.db.query(CashSession)
+            .filter(CashSession.id == session_id)
+            .first()
+        )
+
+        if not session:
+            raise HTTPException(status_code=404, detail="Cash session not found")
+
+        if session.status != "closed":
+            raise HTTPException(status_code=400, detail="Cash session is not closed")
+
+        opening_balance = Decimal(session.opening_balance)
+        closing_balance = Decimal(session.closing_balance)
+
+        # --------------------------------------------------------
+        # 2️⃣ Aggregate cash flow
+        # --------------------------------------------------------
+        rows = (
+            self.db.query(
+                CashFlow.flow_type,
+                func.coalesce(func.sum(CashFlow.amount), 0)
+            )
+            .filter(
+                CashFlow.date.between(start, end)
+            )
+            .group_by(CashFlow.flow_type)
+            .all()
+        )
+
+        total_in = Decimal(0)
+        total_out = Decimal(0)
+
+        for flow_type, total in rows:
+            if flow_type == "IN":
+                total_in += Decimal(total)
+
+            elif flow_type == "OUT":
+                total_out += Decimal(total)
+
+        # --------------------------------------------------------
+        # 3️⃣ Expected vs Real
+        # --------------------------------------------------------
+        expected_balance = opening_balance + total_in - total_out
+        difference = closing_balance - expected_balance
+
+        is_consistent = abs(difference) <= Decimal("0.01")
+
+        # --------------------------------------------------------
+        # 4️⃣ Return audited report
+        # --------------------------------------------------------
+
+        return CashFlowClosingRead(
+            start_date=start,
+            end_date=end,
+
+            opening_balance=opening_balance,
+            expected_balance=expected_balance,
+            closing_balance=closing_balance,
+            difference=difference,
+            is_consistent=is_consistent,
+
+            total_in=total_in,
+            total_out=total_out,
+
+            session_id=session.id,
+            closed_at=session.closed_at
+        )

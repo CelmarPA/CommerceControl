@@ -21,3 +21,23 @@ class CashFlowRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class CashFlowClosingRead(BaseModel):
+    start_date: date
+    end_date: date
+
+    opening_balance: Decimal
+    expected_balance: Decimal
+    closing_balance: Decimal
+    difference: Decimal
+    is_consistent: bool
+
+    total_in: Decimal
+    total_out: Decimal
+
+    session_id: Optional[int]
+    closed_at: Optional[datetime]
+
+    class Config:
+        from_attributes = True

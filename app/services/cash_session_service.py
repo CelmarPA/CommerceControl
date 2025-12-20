@@ -65,41 +65,38 @@ class CashSessionService:
             .all()
         )
 
-        totals = {movement.movement_type: Decimal(movement.total) for movement in movements}
+        totals = {m.movement_type: Decimal(m.total) for m in movements}
 
         opening = Decimal(session.opening_balance)
 
-        sales= totals.get("sale", Decimal(0))
-        supplies = totals.get("supply", Decimal(0))
-        withdrawals = totals.get("withdrawal", Decimal(0))
-        refunds = totals.get("refund", Decimal(0))
-        adjustments = totals.get("adjustment", Decimal(0))
-
-        expected_balance = (
-            opening
-            + sales
-            + supplies
-            + withdrawals
-            + refunds
-            + adjustments
+        total_in = (
+            totals.get("sale", Decimal(0)) +
+            totals.get("cash_supply", Decimal(0))
         )
 
+        total_out = (
+            totals.get("withdrawal", Decimal(0)) +
+            totals.get("refund", Decimal(0)) +
+            totals.get("adjustment", Decimal(0))
+        )
+
+        expected_balance = opening + total_in - total_out
         difference = closing_balance - expected_balance
 
+        is_consistent = abs(difference) <= Decimal("0.01")
+
         # -------------------------------------------------
-        # 1️⃣ Aggregate movements
+        # 2️⃣ Close session (persist audit)
         # -------------------------------------------------
         session.closed_at = datetime.now(timezone.utc)
         session.closing_balance = closing_balance
+        session.expected_balance = expected_balance
+        session.difference = difference
+        session.is_consistent = is_consistent
         session.status = "closed"
 
         self.db.add(session)
         self.db.commit()
-
-        # -------------------------------------------------
-        # 3️⃣ Attach audit info (virtual, not stored)
-        # ------------------------------------------------
-        session.expected_balance = expected_balance
-        session.difference = difference
+        self.db.refresh(session)
 
         return session
